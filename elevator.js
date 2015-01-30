@@ -7,7 +7,7 @@
                 ELEVATORS: [], // leave blank to debug all, set to -1 to hide all
                 FLOORS: []     // leave blank to debug all, set to -1 to hide all
             },
-            FULL: 4,
+            FULL: 0.7,
             BOTTOM_FLOOR: 0,
             TOP_FLOOR: floors.length - 1,
             NUM_ELEVATORS: elevators.length - 1

@@ -3,14 +3,44 @@
 This is my solution to Elevator Saga at http://play.elevatorsaga.com/
 
 ## Code Logic
+### Constants / Settings
+The program "constants" are stored in the `settings` object.
+
+| Property | Defaults to | Definition |
+| -------- | ----------- | ---------- |
+| `DEBUG` | true | `boolean` flag determining whether debugging is turned on |
+| `DEBUG_ELEMENTS.ELEVATORS` | `[]` _(empty array)_ | array determining which elevators to track when the `DEBUG` flag is set. To track all, leave the array blank. To track none, populate with `[-1]` |
+| `DEBUG_ELEMENTS.FLOORS` | `[]` _(empty array)_ | array determining which floors to track when the `DEBUG` flag is set. To track all, leave the array blank. To track none, populate with `[-1]` |
+| `FULL` | `0.7` | The max `loadFactor()` for a given elevator that will stop for a floor that isn't internally pressed |
+| `BOTTOM_FLOOR` | `0` | The bottom floor |
+| `TOP_FLOOR` | `floors.length - 1` | The top floor, derived by the `floors` array size |
+| `NUM_ELEVATORS` | `elevators.length - 1` | The number of elevators, derived by the `elevators` array size |
+
+### Helper Functions
+| Function | Parameter(s) | Description | Returns |
+| -------- | ------------ | ----------- | ------- |
+| `callAvailableElevator` | - `floorNum`
+- `direction` | *TODO* | ```
+{
+    elevator: bestElevator,
+    callStatus: bestElevatorStatus,
+    bestAvailability: bestAvailability,
+    elevatorCalled: elevatorCalled
+}
+``` |
+
 ### Elevators
 Each elevator operates independently, without a master queue.
 
 #### Properties
 
 #### Functions
+| Function | Parameter(s) | Description | Returns |
+| -------- | ------------ | ----------- | ------- |
 
 #### Events
+| Event | Parameter(s) | Event Description | Logic Description |
+| ----- | ------------ | ----------------- | ----------------- |
 
 ### Floors
 
