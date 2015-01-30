@@ -8,122 +8,85 @@
             NUM_ELEVATORS: elevators.length - 1
         };
 
-        // Floor Code ==========================================================
-        floors.forEach(function(floor, floor_index) {
-            /** Elevator Properties ********************************************
-             *  - floorNum()
-             ******************************************************************/
-            floor.queueUp = 0;
-            floor.queueDown = 0;
-            floor.upClaimed = -1;
-            floor.downClaimed = -1;
-
-            // Floor Events ----------------------------------------------------
-            floor.on("up_button_pressed", function() {
-                // Triggered when someone has pressed the up button at a floor. 
-                // Note that passengers will press the button again if they fail to enter an elevator.
-                this.queueUp++;
-                
-                var available = masterQueue.availableElevator(floor.floorNum(),"up");
-                if (available > -1) {
-                    floor.upClaimed = available;
-                    elevators[available].goUp(floor.floorNum());
-                }
-            });
-            floor.on("down_button_pressed", function() {
-                // Triggered when someone has pressed the down button at a floor. 
-                // Note that passengers will press the button again if they fail to enter an elevator.
-                this.queueDown++;
-
-                var available = masterQueue.availableElevator(floor.floorNum(),"down");
-                if (available > -1) {
-                    floor.downClaimed = available;
-                    elevators[available].goDown(floor.floorNum());
-                }
-            });
-        });
-
-        // Master Queue Code ===================================================
-        var masterQueue = (function() {
-            var _downQueue = function() {
-                var _queue = [],
-                    _topDown = -1;
-
-                // Check All Floors
-                floors.forEach(function (floor, fidx) {
-                    _queue[fidx] = floor.queueDown;
-                    _topDown = (floor.queueDown > 0)
-                        ? fidx
-                        : _topDown;
-                });
-
-                return {
-                    queue: _queue,
-                    topDown: _topDown
-                };
-            };
-
-            var _upQueue = function() {
-                var _queue = [],
-                    _bottomUp = -1;
-
-                // Check All Floors
-                floors.forEach(function(floor, fidx) {
-                    _queue[fidx] = floor.queueUp;
-                    _bottomUp = ((floor.queueUp > 0) && (_bottomUp === -1))
-                        ? fidx
-                        : _bottomUp;
-                });
-
-                return {
-                    queue: _queue,
-                    bottomUp: _bottomUp
-                };
-            };
-
-            var _refreshAvailableElevator = function(floorNum, direction) {
-                // Clear Queue
-                var bestElevator = -1,
-                    availableElevators = [],
-                    availability = -1,
-                    bestAvailablility = -1;
-
-                // Check All Elevators
-                elevators.forEach(function(elevator, eidx) {
-                    availability = elevator.available(floorNum, direction);
-
-                    if (availability > bestAvailablility) {
-                        bestElevator = eidx;
-                        bestAvailablility = availability;
-                    }
-                });
-
-                return bestElevator;
-            };
+        var UniqueArray = function() {
+            _a = [];
 
             return {
-                queue: function() {
-                    var up = _upQueue(),
-                        down = _downQueue();
+                get: function() {
+                    return _a;
+                },
+                add: function(v) {
+                    if (_a.indexOf(v) === -1) {
+                        _a.push(v);
+                        _a.sort();
+                    }
 
-                    return {
-                        up: up.queue,
-                        down: down.queue,
-                        topDown: up.topDown,
-                        bottomUp: down.bottomUp
-                    };
+                    return _a;
                 },
-                downQueue: function() {
-                    return _downQueue();
-                },
-                upQueue: function() {
-                    return _upQueue();
-                },
-                availableElevator: function(floorNum, direction) {
-                    return _refreshAvailableElevator(floorNum, direction);
+                remove: function(v) {
+                    var loc = _a.indexOf(v);
+
+                    if (loc > -1) {
+                        _a.splice(loc, 1);
+                    }
+
+                    return _a;
                 }
             }
-        })();
+        };
+        var callAvailableElevator = function(floorNum, direction) {
+            var bestElevator = -1,
+                availableElevators = [],
+                availability = -1,
+                bestAvailablility = -1;
+
+            // Check All Elevators
+            elevators.forEach(function(elevator, eidx) {
+                availability = elevator.available(floorNum, direction);
+
+                if (availability > bestAvailablility) {
+                    bestElevator = eidx;
+                    bestAvailablility = availability;
+                }
+            });
+
+            if (bestElevator > -1) {
+                elevators[bestElevator].go(floorNum, direction);
+            }
+                
+            return bestElevator;            
+        };
+
+        var floorsWaiting = function() {
+            var queue = {
+                    up: [],
+                    down: []
+                },
+                bottomUp = -1,
+                topDown = -1;
+
+            // Check All Floors
+            floors.forEach(function(floor, fidx) {
+                if (floor.button_lit["up"] === true) {
+                    queue.up.push(fidx);
+                    bottomUp = (bottomUp === -1)
+                        ? fidx
+                        : bottomUp;
+                }
+
+                if (floor.button_lit["down"] === true) {
+                    queue.down.push(fidx);
+                    topDown = fidx;
+                }
+            });
+
+            return {
+                queue: queue,
+                bottomUp: bottomUp,
+                topDown: topDown
+            };
+        };
+
 
         // Elevator Code =======================================================
         elevators.forEach(function(elevator, elevator_index) {
@@ -138,41 +101,12 @@
              *  - checkDestinationQueue()
              ******************************************************************/
 
+            // Custom Elevator Properties --------------------------------------
+            elevator.buttons = new UniqueArray();
             elevator.direction = "";
             elevator.goingTo = -1;
 
-            // Pretend In-car Lights (for floors) pressed
-            elevator.buttons = (function() {
-                var _lights = [];
-
-                return {
-                    press: function(floorNum) {
-                        if (!this.isLit) {
-                            _lights.push(floorNum);
-                            _lights.sort();
-                        }
-                    },
-                    clear: function(floorNum) {
-                        var i = _lights.indexOf(floorNum);
-                        if (i > -1) {
-                            _lights = _lights.splice(i, 1);
-                        }
-
-                        do {
-                            i = elevator.destinationQueue.indexOf(floorNum);
-                            if (i > -1) {
-                                elevator.destinationQueue.splice(i, 1);
-                            }
-                        } while (i > -1);
-                        elevator.checkDestinationQueue();
-                    },
-                    isLit: function(floorNum) {
-                        var i = _lights.indexOf(floorNum);
-                        return (i > -1);
-                    }
-                }
-            })();
-
+            // Custom Elevator Functions ---------------------------------------
             elevator.queueLength = function() {
                 return elevator.destinationQueue.length;
             };
@@ -184,6 +118,14 @@
                 elevator.goingDownIndicator(false);
             };
 
+            elevator.go = function(floorNum, direction) {
+                if (direction === "up") {
+                    elevator.goUp(floorNum);
+                } else {
+                    elevator.goDown(floorNum);
+                }
+            };
+
             elevator.goUp = function(floorNum) {
                 elevator.direction = "up";
                 elevator.goingUpIndicator(true);
@@ -191,7 +133,7 @@
 
                 if (floorNum) {
                     elevator.goToFloor(floorNum);
-
+                    elevator.buttons.add(floorNum);
                     elevator.goingTo = (floorNum > elevator.goingTo)
                         ? floorNum
                         : elevator.goingTo;
@@ -205,7 +147,7 @@
 
                 if (floorNum) {
                     elevator.goToFloor(floorNum);
-
+                    elevator.buttons.add(floorNum);
                     elevator.goingTo = (elevator.goingTo === -1 || floorNum < elevator.goingTo)
                         ? floorNum
                         : elevator.goingTo;
@@ -247,28 +189,25 @@
                 elevator.newQueue();
                 debugger;
 
-                var queue = masterQueue.queue(),
-                    floorNum = elevator.currentFloor();
+                var queue = floorsWaiting(),
+                    floor = elevator.currentFloor();
 
-                if ((Math.abs(floorNum - queue.topDown)) < (Math.abs(floorNum - queue.bottomUp))) {
-                    elevator.goDown(queue.topDown);
-                } else {
+                if ((Math.abs(floor - queue.bottomUp)) < (Math.abs(floor - queue.topDown))) {
                     elevator.goUp(queue.bottomUp);
+                } else {
+                    elevator.goDown(queue.topDown);
                 }
             });
 
             elevator.on("floor_button_pressed", function(floorNum) {
                 // Triggered when a passenger has pressed a button inside the elevator.
                 if (elevator.direction === '') {
-                    if (elevator.floorNum() < floorNum) {
-                        elevator.goUp();
-                    } else {
-                        elevator.goDown();
-                    }
+                    elevator.direction = (elevator.floorNum() < floorNum) 
+                        ? "up"
+                        : "down";
                 }
 
-                elevator.buttons.press(floorNum);
-                elevator.goToFloor(floorNum);
+                elevator.go(floorNum, elevator.direction);
 
                 // Make sure that the elevator stops at the floors in order (depending on the direction)
                 elevator.destinationQueue.sort();
@@ -290,18 +229,19 @@
                     return false;
                 }
 
-                if (direction === "down") {
-                    if ((floor.downQueue > 0) &&
-                        ((floor.downClaimed === -1) || (floor.downClaimed === elevator.elevator_index))) {
+                // If the elevator is almost full, do not make a special stop here. If it was going
+                // to stop stop anyways, it will.
+                if (elevator.loadFactor() >= settings.FULL) {
+                    return false;
+                }
 
-                        elevator.goToFloor(floorNum, true);
-                    }
-                } else { // direction === "up"
-                    if ((floor.upQueue > 0) &&
-                        ((floor.upClaimed === -1) || (floor.upClaimed === elevator.elevator_index))) {
+                if ((floor.button_lit[direction]) && (elevator.button_lit[floorNum] === false) &&
+                    ((floor.claimed[direction] === -1) || (floor.claimed[direction] === elevator.elevator_index))) {
 
-                        elevator.goToFloor(floorNum, true);
-                    }
+                    elevator.goToFloor(floorNum, true);
+                    floor.button_lit[direction] = false;
+                    floor.claimed[direction] = -1;
+                    elevator.buttons.remove(floorNum);
                 }
             });
 
@@ -321,12 +261,36 @@
                         break;
                 };
 
-                elevator.buttons.clear(floorNum);
-                if (elevator.direction === "up") {
-                    floors[floorNum].upQueue = 0;
-                } else if (elevator.direction === "down") {
-                    floors[floorNum].downQueue = 0;
-                }
+                elevator.buttons.remove(floorNum);
+            });
+        });
+        
+        // Floor Code ==========================================================
+        floors.forEach(function(floor, floor_index) {
+            /** Elevator Properties ********************************************
+             *  - floorNum()
+             ******************************************************************/
+            
+            floor.button_lit = [];
+            floor.claimed = [];
+
+            floor.button_lit["up"] = false;
+            floor.button_lit["down"] = false;
+            floor.claimed["up"] = -1;
+            floor.claimed["down"] = -1;
+
+            // Floor Events ----------------------------------------------------
+            floor.on("up_button_pressed", function() {
+                // Triggered when someone has pressed the up button at a floor. 
+                // Note that passengers will press the button again if they fail to enter an elevator.
+                floor.button_lit["up"] = true;
+                callAvailableElevator(floor.floorNum(),"up");
+            });
+            floor.on("down_button_pressed", function() {
+                // Triggered when someone has pressed the down button at a floor. 
+                // Note that passengers will press the button again if they fail to enter an elevator.
+                floor.button_lit["down"] = true;
+                callAvailableElevator(floor.floorNum(),"down");
             });
         });
     },
