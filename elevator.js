@@ -18,27 +18,31 @@
         // Helper Functions ====================================================
         var callAvailableElevator = function(floorNum, direction) {
             var bestElevator = -1,
-                bestAvailablility = -1,
-                bestElevatorStatus = {};
+                bestAvailability = -1,
+                bestElevatorStatus = {},
+                elevatorCalled = false;
 
             // Check All Elevators
             elevators.forEach(function(elevator, eidx) {
                 var availability = elevator.available(floorNum, direction);
 
-                if (availability > bestAvailablility) {
+                if (availability > bestAvailability) {
                     bestElevator = eidx;
-                    bestAvailablility = availability;
+                    bestAvailability = availability;
                 }
             });
 
             // Only place a new call to the elevator if it is idle (status === 1)
-            if ((bestElevator > -1) && (bestElevatorStatus === 1)) {
+            if ((bestElevator > -1) && (bestAvailability === 1)) {
                 bestElevatorStatus = elevators[bestElevator].goTo(floorNum, direction);
+                elevatorCalled = true;
             }
                 
             return {
                 elevator: bestElevator,
-                callStatus: bestElevatorStatus
+                callStatus: bestElevatorStatus,
+                bestAvailability: bestAvailability,
+                elevatorCalled: elevatorCalled
             };
         };
 
@@ -428,7 +432,7 @@
                 
                 // If nothing is waiting, wait for now
                 else if (waiting.noneWaiting) {
-                    debug.push("waiting queue is empty");
+                    debug.push("floors waiting queue is empty");
                 }
 
                 // If both the upQueue and downQueue are waiting, go to the closer floor
@@ -641,9 +645,14 @@
                 debug.push("Up button pressed");
 
                 if (settings.DEBUG) {
-                    debug.push((available.elevator > -1)
-                        ? ", requested Elevator " + available.elevator + ", " + available.callStatus.status
-                        : ", no Elevator currently available");
+                    if (available.elevator > -1) {
+                        debug.push("requested Elevator " + available.elevator);
+                        debug.push((available.elevatorCalled) 
+                            ? "call succeeded"
+                            : "call failed with availability " + available.bestAvailability);
+                    } else {
+                        debug.push("no Elevator currently available");
+                    }
 
                     debugStatus(debug, floor); 
                 }
@@ -657,9 +666,14 @@
                 debug.push("Down button pressed");
 
                 if (settings.DEBUG) { 
-                    debug.push((available.elevator > -1)
-                        ? ", requested Elevator " + available.elevator + ", " + available.callStatus.status
-                        : ", no Elevator currently available");
+                    if (available.elevator > -1) {
+                        debug.push("requested Elevator " + available.elevator);
+                        debug.push((available.elevatorCalled) 
+                            ? "call succeeded"
+                            : "call failed with availability " + available.bestAvailability);
+                    } else {
+                        debug.push("no Elevator currently available");
+                    }
 
                     debugStatus(debug, floor); 
                 }
