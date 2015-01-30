@@ -19,18 +19,11 @@ The program "constants" are stored in the `settings` object.
 ### Helper Functions
 | Function | Parameter(s) | Description | Returns |
 | -------- | ------------ | ----------- | ------- |
-| `callAvailableElevator` |
-- `floorNum`
-- `direction` 
-| *TODO* |
-```
-{
-    elevator: bestElevator,
-    callStatus: bestElevatorStatus,
-    bestAvailability: bestAvailability,
-    elevatorCalled: elevatorCalled
-}
-``` |
+| `callAvailableElevator` | `floorNum`: floor to attempt to call the elevator to; `direction`: the direction of the request | **TODO** | `{ elevator, callStatus, bestAvailability, elevatorCalled }` |
+| `floorsWaiting` | none | **TODO** | `{ queue, bottomUp, topDown, noneWaiting }` |
+| `elevatorsStatus` | none | **TODO** | `[elevator.debugStatus]` |
+| `debugStatus` | `message`: debug message; `[obj]`: floor or elevator object | **TODO** | `{ floors, elevators }` |
+| `closerFloor` | `startFloor`: current floor; `option1`: the first floor to compare; `option2`: the second floor to compare | **TODO** | `integer` for the closer floor number |
 
 ### Elevators
 Each elevator operates independently, without a master queue.
