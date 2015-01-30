@@ -17,6 +17,7 @@ The program "constants" are stored in the `settings` object.
 
 ********************************************************************************
 ## Helper Functions
+These are the functions made available independent of the floors or elevators.
 
 ********************************************************************************
 #### Function `callAvailableElevator(floorNum, direction)`
@@ -28,7 +29,7 @@ The program "constants" are stored in the `settings` object.
 ##### Function Description
 todo
 
-##### Returns: `object`
+##### Returns _object_
 ```
 {
     elevator,
@@ -50,7 +51,7 @@ todo
 ##### Function Description
 todo
 
-##### Returns `object`
+##### Returns _object_
 ```
 {
     queue,
@@ -71,7 +72,7 @@ todo
 ##### Function Description
 todo
 
-##### Returns `array` of `elevator.debugStatus()`
+##### Returns _array_ of `elevator.debugStatus()`
 
 ********************************************************************************
 #### Function `debugStatus(message, [obj])`
@@ -83,7 +84,7 @@ todo
 ##### Function Description
 todo
 
-##### Returns `object`
+##### Returns _object_
 ```
 {
     floors,
@@ -106,7 +107,7 @@ todo
 ##### Function Description
 todo
 
-##### Returns `integer`
+##### Returns _integer_
 Returns the closer of the two options to the `startFloor`
 
 | `closerFloor` | `startFloor`: current floor; `option1`: the first floor to compare; `option2`: the second floor to compare | **TODO** | `integer` for the closer floor number |
@@ -118,18 +119,48 @@ Each elevator operates independently, without a master queue.
 ### Properties
 | Property | Definition |
 | -------- | ---------- |
+| `elevator.goingTo` | The longest distance the elevator is heading in the current direction |
+| `elevator.objType` | set to `"elevator"` |
+| `elevator.index` | set to the `elevator_index` to ensure that an elevator can be referenced from the array object |
 
 ********************************************************************************
 ### Functions
+These are custom functions to be called on a single elevator object.
+
+********************************************************************************
+#### Function `elevator.direction([dir])`
+| Parameters | Type | Description |
+| ---------- | ---- | ----------- |
+| `dir` | _string_ | either `up`, `down`, or `clear` |
+
+##### Function Description
+If a direction is provided, this function will set (or clear) the `elevator.goingUpIndicator()` and `elevator.goingDownIndicator()` to indicate to the passengers what direction the elevator is travelling (and should impact whether the get on the elevator).
+
+##### Returns _string_
+Returns `"up"`, `"down"`, or `""` based on the current status of the "goingUp" and "goingDown" indicators.
+
+********************************************************************************
+#### Function `elevator.statusText()`
+##### Function Description
+Generates a short string description of the elevator and current floor to be used in debugging
+
+##### Returns _string_
+- `[E#^]` when elevator direction is up
+- `[E#v]` when elevator direction is down
+- `[E#x]` when elevator direction is not set
+- Where `#` is the elevator number
+- Includes the `floor.statusText()` based on the elevator's current floor
+  - _example: `[E0^][F2^_]` - elevator 0, going up, at floor 2 with the up indicator lit_
+
 ********************************************************************************
 #### Function `functionName(arg1, arg2)`
 | Parameters | Type | Description |
 | ---------- | ---- | ----------- |
-| `arg1` | `type` | todo |
-| `arg2` | `type` | todo |
+| `arg1` | _type_ | todo |
+| `arg2` | _type_ | todo |
 
 ##### Function Description
-##### Returns `todo`
+##### Returns _todo_
 | Element | Type | Description |
 | ------- | ---- | ----------- |
 
@@ -147,16 +178,16 @@ Each elevator operates independently, without a master queue.
 | Property | Definition |
 | -------- | ---------- |
 | `floor.objType` | set to `"floor"` |
-| `floor.index` | set to the `floor_index` to enssure that a floor can be referenced from the array object |
+| `floor.index` | set to the `floor_index` to ensure that a floor can be referenced from the array object |
 
 ********************************************************************************
 ### Functions
 ********************************************************************************
 #### Function `floor.statusText()`
 ##### Function Description
-generates a short string description of the floor to be used in debugging
+Generates a short string description of the floor to be used in debugging
 
-##### Returns `string`
+##### Returns _string_
 - `[F#^v]` where `#` is the floor number and the following 2 digits display whether the up and down button have been pressed
 - If the up or down buttons are not pressed, those digits will be replaced with an underscore `_`
 
@@ -165,14 +196,14 @@ generates a short string description of the floor to be used in debugging
 ##### Function Description
 returns whether `floor.buttonStates.up` is populated
 
-##### Returns `boolean`
+##### Returns _boolean_
 
 ********************************************************************************
 #### Function `floor.downPressed()`
 ##### Function Description
 returns whether `floor.buttonStates.down` is populated
 
-##### Returns `boolean`
+##### Returns _boolean_
 
 ********************************************************************************
 ### Events
