@@ -2,8 +2,38 @@
 
 This is my solution to Elevator Saga at http://play.elevatorsaga.com/
 
-### Base Code
+## Code Logic
+### Elevators
+Each elevator operates independently, without a master queue.
 
+#### Properties
+
+#### Functions
+
+#### Events
+
+### Floors
+
+#### Custom Properties
+| Property | Definition |
+| -------- | ---------- |
+| `floor.objType` | set to `"floor"` |
+| `floor.index` | set to the `floor_index` to enssure that a floor can be referenced from the array object |
+
+#### Functions
+| Function | Parameter(s) | Description | Returns |
+| -------- | ------------ | ----------- | ------- |
+| `floor.statusText()` | none | generates a short string description of the floor to be used in debugging | `[F#^]` when going up, `[F#v]` when going down, `[F#_]` when no direction, where `#` is the floor number |
+| `floor.upPressed()` | none | returns whether `floor.buttonStates.up` is populated | `boolean` |
+| `floor.downPressed()` | none | returns whether `floor.buttonStates.down` is populated | `boolean` |
+
+#### Events
+| Event | Parameter(s) | Event Description | Logic Description |
+| ----- | ------------ | ----------------- | ----------------- |
+| `up_button_pressed` | none | Triggered when someone has pressed the up button at a floor. Note that passengers will press the button again if they fail to enter an elevator. | Attempts to request an elevator to come to this floor based on availability or current destination |
+| `down_button_pressed` | none | Triggered when someone has pressed the down button at a floor. Note that passengers will press the button again if they fail to enter an elevator. | Attempts to request an elevator to come to this floor based on availability or current destination |
+
+## Base Code
 Each time I refactored the code, I tried to start with a common base
 
 ```javascript
