@@ -3,6 +3,10 @@
         // "Constants" =========================================================
         var settings = {
             DEBUG: true,
+            DEBUG_ELEMENTS: {
+                ELEVATORS: [], // leave blank to debug all, set to -1 to hide all
+                FLOORS: []     // leave blank to debug all, set to -1 to hide all
+            },
             FULL: 4,
             BOTTOM_FLOOR: 0,
             TOP_FLOOR: floors.length - 1,
@@ -27,7 +31,8 @@
                 }
             });
 
-            if ((bestElevator > -1) && (bestElevatorStatus > 0)) {
+            // Only place a new call to the elevator if it is idle (status === 1)
+            if ((bestElevator > -1) && (bestElevatorStatus === 1)) {
                 bestElevatorStatus = elevators[bestElevator].goTo(floorNum, direction);
             }
                 
@@ -48,7 +53,7 @@
 
             // Check All Floors
             floors.forEach(function(floor, fidx) {
-                if (floor.buttonStates.up !== "") {
+                if (floor.upPressed()) {
                     queue.up.push(fidx);
                     noneWaiting = false;
                     bottomUp = (bottomUp === -1)
@@ -56,7 +61,7 @@
                         : bottomUp;
                 }
 
-                if (floor.buttonStates.down !== "") {
+                if (floor.downPressed()) {
                     queue.down.push(fidx);
                     noneWaiting = false;
                     topDown = fidx;
@@ -74,31 +79,57 @@
         var elevatorsStatus = function() {
             var _elevators = [];
 
-            elevators.forEach(function(elevator, eidx) {
-                var _e = {
-                    index: eidx,
-                    goingTo: elevator.goingTo,
-                    direction: elevator.direction(),
-                    queue: elevator.destinationQueue,
-                    buttons: elevator.getPressedFloors()
-                };
-
-                _elevators.push(_e);
+            elevators.forEach(function(e, i) {
+                _elevators.push(e.debugStatus());
             });
 
             return _elevators;
         };
 
-        var debugStatus = function(message) {
+        var debugStatus = function(message, obj) {
             var status = {
                 floors: floorsWaiting(),
                 elevators: elevatorsStatus()
             };
 
-            if (arguments.length > 0) {
-                console.log(message, status);
-            } else {
-                console.log(status);
+            // Don't bother with the console.log logic below if DEBUG is off
+            if (!settings.DEBUG) {
+                return status;
+            }
+
+            // If the message is an array, make it presentable
+            if (Array.isArray(message)) {
+                message = message.join("; ");
+            }
+
+            switch (arguments.length) {
+                case 0: // No message, no type, just show status
+                    console.log(status);
+                    break;
+
+                case 1: // Message, but no type, show message and status
+                    console.log(message, status);
+                    break;
+
+                case 2: // Message and type, show appropriate type text, message, and status
+                    // Check to make sure that we want don't want to filter out this object
+                    if ((obj.hasOwnProperty("objType")) && (obj.objType === "elevator")) {
+                        if ((settings.DEBUG_ELEMENTS.ELEVATORS.length == 0) || (settings.DEBUG_ELEMENTS.ELEVATORS.indexOf(obj.index) > -1)) {
+                            console.log(obj.statusText() + ": " + message, status);
+                        }
+                    } else if ((obj.hasOwnProperty("objType")) && (obj.objType === "floor")) {
+                        if ((settings.DEBUG_ELEMENTS.FLOORS.length == 0) || (settings.DEBUG_ELEMENTS.FLOORS.indexOf(obj.index) > -1)) {
+                            console.log(obj.statusText() + ": " + message, status);
+                        }
+                    } else if (!obj.hasOwnProperty("objType")) {
+                        console.log(obj, message, status);                        
+                    }
+                    break;
+
+                default:
+                    console.log("Incorrect number of arguments to debugStatus:", arguments);
+                    console.log(status);
+                    break;
             }
 
             return status;
@@ -128,6 +159,8 @@
 
             // Custom Elevator Properties --------------------------------------
             elevator.goingTo = -1;
+            elevator.objType = "elevator";
+            elevator.index = elevator_index;
 
             // Custom Elevator Functions ---------------------------------------
             elevator.direction = function(dir) {
@@ -157,8 +190,30 @@
             };
 
             elevator.statusText = function() {
-                return "Elevator " + elevator_index + " [F" + elevator.currentFloor() + "]";
+                var floor = floors[elevator.currentFloor()],
+                    text = "E" + elevator_index;
+                
+                switch(elevator.direction()) {
+                    case "up":   text += "^"; break;
+                    case "down": text += "v"; break;
+                    case "":     text += "x"; break;
+                }
+
+                text = "[" + text + "]";
+                text += floor.statusText();
+
+                return text;
             };
+
+            elevator.debugStatus = function() {
+                return {
+                    index: elevator_index,
+                    goingTo: elevator.goingTo,
+                    direction: elevator.direction(),
+                    queue: elevator.destinationQueue,
+                    buttons: elevator.getPressedFloors()
+                };
+            }
 
             elevator.available = function(floorNum, direction) {
                 /* Returns a weighted availability
@@ -219,7 +274,7 @@
                     };
                 }
 
-                if ((floorNum === -1) || (floorNum > settings.TOP_FLOOR)) {
+                if ((floorNum < settings.BOTTOM_FLOOR) || (floorNum > settings.TOP_FLOOR)) {
                     return {
                         success: false,
                         status: "invalid floor: " + floorNum,
@@ -240,7 +295,15 @@
                         success: false,
                         status: "backtrack",
                         direction: "up"
-                    }
+                    };
+                }
+
+                if ((elevator.direction === "down") && (floorNum >= elevator.goingTo)) {
+                    return {
+                        success: false,
+                        status: "going past",
+                        direction: "up"
+                    };
                 }
                 
                 // Set Elevator Status
@@ -275,7 +338,7 @@
                     };
                 }
 
-                if ((floorNum === -1) || (floorNum > settings.TOP_FLOOR)) {
+                if ((floorNum < settings.BOTTOM_FLOOR) || (floorNum > settings.TOP_FLOOR)) {
                     return {
                         success: false,
                         status: "invalid floor: " + floorNum,
@@ -296,7 +359,15 @@
                         success: false,
                         status: "backtrack",
                         direction: "down"
-                    }
+                    };
+                }
+
+                if ((elevator.direction === "up") && (floorNum <= elevator.goingTo)) {
+                    return {
+                        success: false,
+                        status: "going past",
+                        direction: "down"
+                    };
                 }
                 
                 // Set Elevator Status
@@ -336,7 +407,9 @@
 
                 var waiting = floorsWaiting(),
                     moveStatus = {},
-                    debugMsg = elevator.statusText() + " - Idle";
+                    debug = [];
+
+                debug.push("Idle");
 
                 // Check to see if there are still active buttons
                 if (elevator.getPressedFloors().length > 0) {
@@ -345,71 +418,72 @@
                         elevator.destinationQueue.reverse();
                     }
                     elevator.checkDestinationQueue();
-                    debugMsg += ", still has pressed floors, refreshed queue";
+                    debug.push("still has pressed floors, refreshed queue");
                 }
 
                 // Check to see if someone is on the elevator and needs to press a button
                 else if (elevator.loadFactor() > 0) {
-                    debugMsg += ", loadFactor == " + elevator.loadFactor() + " (>0), not truly idle";
+                    debug.push("loadFactor == " + elevator.loadFactor() + "(>0), not truly idle");
                 }
                 
                 // If nothing is waiting, wait for now
                 else if (waiting.noneWaiting) {
-                    debugMsg += ", waiting queue is empty";
-                    
+                    debug.push("waiting queue is empty");
                 }
 
                 // If both the upQueue and downQueue are waiting, go to the closer floor
                 else if ((waiting.bottomUp > -1) && (waiting.topDown > -1)) {
                     var closer = closerFloor(elevator.currentFloor(), waiting.bottomUp, waiting.topDown);
 
-                    debugMsg += ", upQueue and downQueue both waiting"
+                    debug.push("upQueue and downQueue both waiting");
 
                     if (closer === waiting.bottomUp) {
-                        debugMsg += ", going up from " + waiting.bottomUp;
+                        debug.push("going up from " + waiting.bottomUp);
                         moveStatus = elevator.goUp(closer);
                     } else {
-                        debugMsg += ", going down from " + waiting.topDown;
+                        debug.push("going down from " + waiting.topDown);
                         moveStatus = elevator.goDown(closer);
                     }
                 }
 
                 // If only the upQueue is waiting, go to the first (bottom) 
                 else if (waiting.bottomUp > -1) {
-                    debugMsg += ", going up from " + waiting.bottomUp;
+                    debug.push("going up from " + waiting.bottomUp);
                     moveStatus = elevator.goUp(waiting.bottomUp);
                 } 
 
                 // If only the downQueue is waiting, go to the first (top)
                 else if (waiting.topDown > -1) {
-                    debugMsg += ", going down from " + waiting.topDown;
+                    debug.push("going down from " + waiting.topDown);
                     moveStatus = elevator.goDown(waiting.topDown);
                 }
 
                 else {
-                    debugMsg += ", no logic criteria met."
-                    if (settings.DEBUG) {
-                        debugger;
-                    }
+                    debug.push("no logic criteria met");
+                    if (settings.DEBUG) { debugger; }
                 }
 
                 // Debug Messaging
                 if (settings.DEBUG) {
                     if ((moveStatus.hasOwnProperty("success")) && (moveStatus.success === false)) {
-                        debugMsg += ", move failed: " + moveStatus.status;
+                        debug.push("move failed: " + moveStatus.status);
                     }
 
-                    debugStatus(debugMsg);
+                    debugStatus(debug, elevator);
                 }
             });
             elevator.on("floor_button_pressed", function(floorNum) {
                 // Triggered when a passenger has pressed a button inside the elevator.
-                var callStatus = elevator.goTo(floorNum, elevator.direction),
-                    debugMsg = elevator.statusText() + " - Button " + floorNum + " pressed";
+                var buttonDirection = (floorNum > elevator.currentFloor()) ? "up" : "down",
+                    callStatus = elevator.goTo(floorNum, buttonDirection),
+                    debug = [];
 
+                // Debug Messaging
                 if (settings.DEBUG) { 
-                    debugMsg += ", " + callStatus.status;
-                    debugStatus(debugMsg);
+                    debug.push("Button " + floorNum + " pressed");
+                    debug.push(callStatus.status);
+
+                    debugStatus(debug, elevator);
                 }
             });
             elevator.on("passing_floor", function(floorNum, direction) {
@@ -417,66 +491,94 @@
                 // whether to stop at that floor. Note that this event is not triggered for the 
                 // destination floor. Direction is either "up" or "down".
                 var floor = floors[floorNum],
-                    debugMsg = elevator.statusText() + " - Passing Floor " + floorNum + " going " + direction;
+                    queueIndex = elevator.destinationQueue.indexOf(floorNum),
+                    debug = [];
 
-                // If the floor's request button is not lit, then we don't need to consider stopping
-                if (((direction === "down") && (floor.buttonStates.down === "")) ||
-                    ((direction === "up") && (floor.buttonStates.up === ""))) {
+                debug.push("Passing Floor " + floorNum + " going " + direction);
 
-                    debugMsg += ", stop not requested";
+                // If the elevator is already going to stop here, then we don't need to do anything special
+                if (queueIndex === 0) {
+                    debug.push("elevator already planning to stop, index " + queueIndex);
                 }
 
                 // If the elevator is already going to stop here, then we don't need to do anything special
-                else if (elevator.destinationQueue.indexOf(floorNum) > -1) {
-                    debugMsg += ", elevator already planning to stop, index " + elevator.destinationQueue.indexOf(floorNum)
+                if (queueIndex > 0) {
+                    debug.push("elevator already planning to stop, index " + queueIndex + ", reordered");
+
+                    elevator.destinationQueue.splice(queueIndex,1);
+                    elevator.destinationQueue.unshift(floorNum);
+                    elevator.checkDestinationQueue();
                 }
 
                 // If it's not in the queue, but for some reason the button is pressed in the elevator, stop
-                else if (elevator.getPressedFloors().indexOf(floorNum)) {
+                else if (elevator.getPressedFloors().indexOf(floorNum) > -1) {
                     elevator.goToFloor(floorNum, true);
-                    debugMsg += ", elevator button pressed but not in queue, stopping here"
+
+                    debug.push("elevator button pressed but not in queue, stopping here");
+                }
+
+                // If the floor's request button is not lit, then we don't need to consider stopping
+                else if (((direction === "down") && (!floor.downPressed())) ||
+                    ((direction === "up") && (!floor.upPressed()))) {
+
+                    debug.push("stop going " + direction + " not requested from floor");
                 }
 
                 // Don't even think about stopping if you're on the way to a farther floor to go 
                 // the opposite direction
                 else if (direction !== elevator.direction) {
-                    debugMsg += ", elevator going " + direction + " on the way to " + elevator.goingTo + ", going " + elevator.direction();
+                    debug.push("elevator going " + direction + " on the way to " + elevator.goingTo + ", going " + elevator.direction());
                 }
 
                 // If the elevator is almost full, do not make a special stop here. If it was going
                 // to stop stop anyways, it will.
                 else if (elevator.loadFactor() >= settings.FULL) {
-                    debugMsg += ", loadFactor == " + elevator.loadFactor() + " (>" + settings.FULL + ")";
+                    debug.push("loadFactor == " + elevator.loadFactor() + " (>" + settings.FULL + ")");
+                    debug.push("elevator too full to make an extra stop");
                 }
 
                 // If the floor light is lit in the same direction we are traveling, the elevator is
                 // not already planning to stop here, and it's not too full, then stop along the way
-                else if (((direction === "down") && (floor.buttonStates.down !== "")) ||
-                         ((direction === "up") && (floor.buttonStates.up !== ""))) {
+                else if (((direction === "down") && (floor.downPressed())) ||
+                         ((direction === "up") && (floor.upPressed()))) {
                     
                     elevator.goTo(floorNum, direction, true);
-                    debugMsg += ", stopping here";
+                    debug.push("stopping here");
                 }
 
                 else {
-                    debugMsg += ", no logic criteria met";
+                    debug.push("no logic criteria met");
+                    if (settings.DEBUG) { debugger; }
                 }
 
                 if (settings.DEBUG) {
-                    debugStatus(debugMsg);
+                    debugStatus(debug, elevator);
                 }
             });
             elevator.on("stopped_at_floor", function(floorNum) {
                 // Triggered when the elevator has arrived at a floor.
-                // TODO: double check current status
-                var debugMsg = elevator.statusText() + " - Stopped at Floor " + floorNum;
+                var floor = floors[floorNum],
+                    debug = [];
+
+                debug.push("Stopped at Floor " + floorNum);
+
+                // Update the direction
+                if (floorNum === settings.BOTTOM_FLOOR) {
+                    elevator.direction("up");
+                } else if (floorNum === settings.TOP_FLOOR) {
+                    elevator.direction("down");
+                } else if ((floor.upPressed()) && (!floor.downPressed())) {
+                    elevator.direction("up");
+                } else if ((floor.downPressed()) && (!floor.upPressed())) {
+                    elevator.direction("down");
+                }
 
                 // Remove this floor from the queue if it's there
                 if (elevator.destinationQueue.length > 0) {
                     var index = elevator.destinationQueue.indexOf(floorNum);
 
                     if (index > -1) {
-                        debugMsg += ", removing floor from destination queue [" + elevator.destinationQueue.join(", ") + "]";
+                        debug.push("removing floor from destination queue [" + elevator.destinationQueue.join(", ") + "]");
                     }
 
                     while (index > -1) {
@@ -487,8 +589,11 @@
                 }
 
                 if (settings.DEBUG) {
-                    debugMsg += (floorNum !== elevator.goingTo) ? " on the way to " + elevator.goingTo : "";
-                    debugStatus(debugMsg);
+                    if (floorNum !== elevator.goingTo) {
+                        debug.push("on the way to " + elevator.goingTo);
+                    }
+                        
+                    debugStatus(debug, elevator);
                 }
             });
         });
@@ -502,33 +607,61 @@
              *  - buttonStates { down: "" , up: "" }
              ******************************************************************/
             
+            // Custom Properties -----------------------------------------------
+            floor.objType = "floor";
+            floor.index = floor_index;
+
+            // Custom Functions ------------------------------------------------
+            floor.statusText = function() {
+                var text = "F" + floor.floorNum();
+
+                text += (floor.upPressed()) ? "^" : "_";
+                text += (floor.downPressed()) ? "v" : "_";
+
+                text = "[" + text + "]";
+
+                return text;
+            };
+
+            floor.upPressed = function() {
+                return (floor.buttonStates.up !== "");
+            };
+
+            floor.downPressed = function() {
+                return (floor.buttonStates.down !== "");
+            };
+
             // Floor Events ----------------------------------------------------
             floor.on("up_button_pressed", function() {
                 // Triggered when someone has pressed the up button at a floor. 
                 // Note that passengers will press the button again if they fail to enter an elevator.
                 var available = callAvailableElevator(floor.floorNum(), "up"),
-                    debugMsg = "Floor " + floor.floorNum() + " - Up button pressed";
+                    debug = [];
 
-                if (settings.DEBUG) { 
-                    debugMsg += (available.elevator > -1)
+                debug.push("Up button pressed");
+
+                if (settings.DEBUG) {
+                    debug.push((available.elevator > -1)
                         ? ", requested Elevator " + available.elevator + ", " + available.callStatus.status
-                        : ", no Elevator currently available";
+                        : ", no Elevator currently available");
 
-                    debugStatus(debugMsg); 
+                    debugStatus(debug, floor); 
                 }
             });
             floor.on("down_button_pressed", function() {
                 // Triggered when someone has pressed the down button at a floor. 
                 // Note that passengers will press the button again if they fail to enter an elevator.
                 var available = callAvailableElevator(floor.floorNum(), "down"),
-                    debugMsg = "Floor " + floor.floorNum() + " - Down button pressed";
+                    debug = [];
+
+                debug.push("Down button pressed");
 
                 if (settings.DEBUG) { 
-                    debugMsg += (available.elevator > -1)
+                    debug.push((available.elevator > -1)
                         ? ", requested Elevator " + available.elevator + ", " + available.callStatus.status
-                        : ", no Elevator currently available";
+                        : ", no Elevator currently available");
 
-                    debugStatus(debugMsg); 
+                    debugStatus(debug, floor); 
                 }
             });
         });
