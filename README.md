@@ -166,10 +166,40 @@ Generates a short string description of the elevator and current floor to be use
 
 ### Events
 ********************************************************************************
-#### Event `todo`
-##### Event Parameters: `todo`
+#### Event `idle`
+##### Event Parameters: _none_
 ##### Event Description
+Triggered when the elevator has completed all its tasks and is not doing anything.
+
 ##### Function Description
+todo
+
+********************************************************************************
+#### Event `floor_button_pressed`
+##### Event Parameters: `floorNum`
+##### Event Description
+Triggered when a passenger has pressed a button inside the elevator.
+
+##### Function Description
+todo
+
+********************************************************************************
+#### Event `passing_floor`
+##### Event Parameters: `floorNum`, `direction`
+##### Event Description
+Triggered slightly before the elevator will pass a floor. A good time to decide whether to stop at that floor. Note that this event is not triggered for the destination floor. Direction is either "up" or "down".
+
+##### Function Description
+todo
+
+********************************************************************************
+#### Event `stopped_at_floor`
+##### Event Parameters: `floorNum`
+##### Event Description
+Triggered when the elevator has arrived at a floor.
+
+##### Function Description
+todo
 
 ********************************************************************************
 ## Floors
@@ -209,7 +239,7 @@ returns whether `floor.buttonStates.down` is populated
 ### Events
 ********************************************************************************
 #### Event `up_button_pressed`
-##### Event Parameters: `none`
+##### Event Parameters: _none_
 ##### Event Description
 Triggered when someone has pressed the up button at a floor. Note that passengers will press the button again if they fail to enter an elevator.
 
@@ -218,7 +248,7 @@ Attempts to request an elevator to come to this floor based on availability or c
 
 ********************************************************************************
 #### Event `down_button_pressed`
-##### Event Parameters: `none`
+##### Event Parameters: _none_
 ##### Event Description
 Triggered when someone has pressed the down button at a floor. Note that passengers will press the button again if they fail to enter an elevator.
 
