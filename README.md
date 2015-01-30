@@ -2,8 +2,7 @@
 
 This is my solution to Elevator Saga at http://play.elevatorsaga.com/
 
-## Code Logic
-### Constants / Settings
+## Constants / Settings
 The program "constants" are stored in the `settings` object.
 
 | Property | Defaults to | Definition |
@@ -16,50 +15,187 @@ The program "constants" are stored in the `settings` object.
 | `TOP_FLOOR` | `floors.length - 1` | The top floor, derived by the `floors` array size |
 | `NUM_ELEVATORS` | `elevators.length - 1` | The number of elevators, derived by the `elevators` array size |
 
-### Helper Functions
-| Function | Parameter(s) | Description | Returns |
-| -------- | ------------ | ----------- | ------- |
-| `callAvailableElevator` | `floorNum`: floor to attempt to call the elevator to; `direction`: the direction of the request | **TODO** | `{ elevator, callStatus, bestAvailability, elevatorCalled }` |
-| `floorsWaiting` | none | **TODO** | `{ queue, bottomUp, topDown, noneWaiting }` |
-| `elevatorsStatus` | none | **TODO** | `[elevator.debugStatus]` |
-| `debugStatus` | `message`: debug message; `[obj]`: floor or elevator object | **TODO** | `{ floors, elevators }` |
+********************************************************************************
+## Helper Functions
+
+********************************************************************************
+#### Function `callAvailableElevator(floorNum, direction)`
+| Parameters | Type | Description |
+| ---------- | ---- | ----------- |
+| `floorNum` | _integer_ | floor to attempt to call the elevator to |
+| `direction` | _string_ `up` or `down` | the direction of the request |
+
+##### Function Description
+todo
+
+##### Returns: `object`
+```
+{
+    elevator,
+    callStatus,
+    bestAvailability,
+    elevatorCalled
+}
+```
+
+| Element | Type | Description |
+| ------- | ---- | ----------- |
+| `elevator` | | |
+| `callStatus` | | |
+| `bestAvailability` | | |
+| `elevatorCalled` | | |
+
+********************************************************************************
+#### Function `floorsWaiting()`
+##### Function Description
+todo
+
+##### Returns `object`
+```
+{
+    queue,
+    bottomUp,
+    topDown,
+    noneWaiting
+}
+```
+| Element | Type | Description |
+| ------- | ---- | ----------- |
+| `queue` | _object_ | |
+| `bottomUp` | _integer_  | |
+| `topDown` | _integer_ | |
+| `noneWaiting` | _boolean_ | |
+
+********************************************************************************
+#### Function `elevatorStatus()`
+##### Function Description
+todo
+
+##### Returns `array` of `elevator.debugStatus()`
+
+********************************************************************************
+#### Function `debugStatus(message, [obj])`
+| Parameters | Type | Description |
+| ---------- | ---- | ----------- |
+| `message` | _string_ | Debug message to be down in the console |
+| `obj` | _object_, either an `elevator` or `floor` | Given the elevator or floor, show the debug message with relevant context based on the object's `statusText()` function |
+
+##### Function Description
+todo
+
+##### Returns `object`
+```
+{
+    floors,
+    elevators
+}
+```
+| Element | Type | Description |
+| ------- | ---- | ----------- |
+| `floors` | | |
+| `elevators` | | |
+
+********************************************************************************
+#### Function `closerFloor(startFloor, option1, option2)`
+| Parameters | Type | Description |
+| ---------- | ---- | ----------- |
+| `startFloor` | _integer_ | The floor to compare, usually the current floor |
+| `option1` | _integer_ | The first option of floors to compare |
+| `option2` | _integer_ | The second option of floors to compare |
+
+##### Function Description
+todo
+
+##### Returns `integer`
+Returns the closer of the two options to the `startFloor`
+
 | `closerFloor` | `startFloor`: current floor; `option1`: the first floor to compare; `option2`: the second floor to compare | **TODO** | `integer` for the closer floor number |
 
-### Elevators
+********************************************************************************
+## Elevators
 Each elevator operates independently, without a master queue.
 
-#### Properties
+### Properties
+| Property | Definition |
+| -------- | ---------- |
 
-#### Functions
-| Function | Parameter(s) | Description | Returns |
-| -------- | ------------ | ----------- | ------- |
+********************************************************************************
+### Functions
+********************************************************************************
+#### Function `functionName(arg1, arg2)`
+| Parameters | Type | Description |
+| ---------- | ---- | ----------- |
+| `arg1` | `type` | todo |
+| `arg2` | `type` | todo |
 
-#### Events
-| Event | Parameter(s) | Event Description | Logic Description |
-| ----- | ------------ | ----------------- | ----------------- |
+##### Function Description
+##### Returns `todo`
+| Element | Type | Description |
+| ------- | ---- | ----------- |
 
-### Floors
+### Events
+********************************************************************************
+#### Event `todo`
+##### Event Parameters: `todo`
+##### Event Description
+##### Function Description
 
-#### Custom Properties
+********************************************************************************
+## Floors
+
+### Custom Properties
 | Property | Definition |
 | -------- | ---------- |
 | `floor.objType` | set to `"floor"` |
 | `floor.index` | set to the `floor_index` to enssure that a floor can be referenced from the array object |
 
-#### Functions
-| Function | Parameter(s) | Description | Returns |
-| -------- | ------------ | ----------- | ------- |
-| `floor.statusText()` | none | generates a short string description of the floor to be used in debugging | `[F#^]` when going up, `[F#v]` when going down, `[F#_]` when no direction, where `#` is the floor number |
-| `floor.upPressed()` | none | returns whether `floor.buttonStates.up` is populated | `boolean` |
-| `floor.downPressed()` | none | returns whether `floor.buttonStates.down` is populated | `boolean` |
+********************************************************************************
+### Functions
+********************************************************************************
+#### Function `floor.statusText()`
+##### Function Description
+generates a short string description of the floor to be used in debugging
 
-#### Events
-| Event | Parameter(s) | Event Description | Logic Description |
-| ----- | ------------ | ----------------- | ----------------- |
-| `up_button_pressed` | none | Triggered when someone has pressed the up button at a floor. Note that passengers will press the button again if they fail to enter an elevator. | Attempts to request an elevator to come to this floor based on availability or current destination |
-| `down_button_pressed` | none | Triggered when someone has pressed the down button at a floor. Note that passengers will press the button again if they fail to enter an elevator. | Attempts to request an elevator to come to this floor based on availability or current destination |
+##### Returns `string`
+- `[F#^v]` where `#` is the floor number and the following 2 digits display whether the up and down button have been pressed
+- If the up or down buttons are not pressed, those digits will be replaced with an underscore `_`
 
-## Base Code
+********************************************************************************
+#### Function `floor.upPressed()`
+##### Function Description
+returns whether `floor.buttonStates.up` is populated
+
+##### Returns `boolean`
+
+********************************************************************************
+#### Function `floor.downPressed()`
+##### Function Description
+returns whether `floor.buttonStates.down` is populated
+
+##### Returns `boolean`
+
+********************************************************************************
+### Events
+********************************************************************************
+#### Event `up_button_pressed`
+##### Event Parameters: `none`
+##### Event Description
+Triggered when someone has pressed the up button at a floor. Note that passengers will press the button again if they fail to enter an elevator.
+
+##### Function Description
+Attempts to request an elevator to come to this floor based on availability or current destination
+
+********************************************************************************
+#### Event `down_button_pressed`
+##### Event Parameters: `none`
+##### Event Description
+Triggered when someone has pressed the down button at a floor. Note that passengers will press the button again if they fail to enter an elevator.
+
+##### Function Description
+Attempts to request an elevator to come to this floor based on availability or current destination
+
+********************************************************************************
+## Base Code Template
 Each time I refactored the code, I tried to start with a common base
 
 ```javascript
