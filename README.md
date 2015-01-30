@@ -19,8 +19,11 @@ The program "constants" are stored in the `settings` object.
 ### Helper Functions
 | Function | Parameter(s) | Description | Returns |
 | -------- | ------------ | ----------- | ------- |
-| `callAvailableElevator` | - `floorNum`
-- `direction` | *TODO* | ```
+| `callAvailableElevator` |
+- `floorNum`
+- `direction` 
+| *TODO* |
+```
 {
     elevator: bestElevator,
     callStatus: bestElevatorStatus,
