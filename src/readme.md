@@ -1,6 +1,6 @@
 
 
-<!-- Start elevator.js -->
+<!-- Start src/elevator.js -->
 
 Author: Scott Morris scott.r.morris@gmail.com
 
@@ -110,7 +110,8 @@ todo
 
 ### Return:
 
-* **object** ```
+* **object** 
+```
 {
     elevator,
     callStatus,
@@ -118,6 +119,7 @@ todo
     elevatorCalled
 }
 ```
+
 * **integer** *elevator* todo
 * **integer** *callStatus* todo
 * **integer** *bestAvailability* todo
@@ -129,7 +131,8 @@ todo
 
 ### Return:
 
-* **object** ```
+* **object** 
+```
 {
     queue: {
         up,
@@ -140,6 +143,7 @@ todo
     noneWaiting
 }
 ```
+
 * **array** *queue.up* todo
 * **array** *queue.down* todo
 * **integer** *bottomUp* todo
@@ -165,7 +169,8 @@ Given the elevator or floor, show the debug message with relevant context based 
 
 ### Return:
 
-* **object** ```
+* **object** 
+```
 {
     floors,
     elevators
@@ -262,7 +267,7 @@ Queue the elevator to go to specified floor number.
 
 ## elevator.loadFactor()
 
-Gets the load factor of the elevator. 
+Gets the load factor of the elevator.
 
 ### Return:
 
@@ -292,5 +297,5 @@ Returns a weighted availability
    0 : busy, but might be going past
   -1 : going the other way past this floor, not available
 
-<!-- End elevator.js -->
+<!-- End src/elevator.js -->
 
