@@ -153,6 +153,7 @@
 		 * @param {integer} floorNum floor to attempt to call the elevator to
 		 * @param {string} direction the direction of the requeest, either `"up"` or `"down"`
 		 * @return {object}
+         *
 		 * ```
 		 * {
 		 *     elevator,
@@ -161,6 +162,7 @@
 		 *     elevatorCalled
 		 * }
 		 * ```
+         *
 		 * * **integer** *elevator* todo
 		 * * **integer** *callStatus* todo
 		 * * **integer** *bestAvailability* todo
@@ -201,6 +203,7 @@
 		 *
 		 * @name floorsWaiting
 		 * @return {object}
+         *
 		 * ```
 		 * {
 		 *     queue: {
@@ -212,6 +215,7 @@
 		 *     noneWaiting
 		 * }
 		 * ```
+         *
 		 * * **array** *queue.up* todo
 		 * * **array** *queue.down* todo
 		 * * **integer** *bottomUp* todo
@@ -273,12 +277,14 @@
 		 * @param {string} message Debug message to be shown in the console
 		 * @param {object} obj Either an `elevator` or `floor`
 		 * @return {object}
+         *
 		 * ```
 		 * {
 		 *     floors,
 		 *     elevators
 		 * }
 		 * ```
+         *
 		 */
 		var debugStatus = function (message, obj) {
 			var status = {
