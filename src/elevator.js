@@ -1,6 +1,24 @@
+/**
+ * @author Scott Morris scott.r.morris@gmail.com
+ * @version 0.0.10
+ *
+ * This is my solution to Elevator Saga at http://play.elevatorsaga.com/
+ */
 {
 	init: function (elevators, floors) {
-		// "Constants" =========================================================
+		/**
+		 * The program "constants" are stored in the `settings` object.
+		 *
+		 * @name settings
+		 * @param {boolean} DEBUG flag determining whether debugging is turned on
+		 * @param {object} DEBUG_ELEMENTS
+		 * @param {array} DEBUG_ELEMENTS.ELEVATORS array determining which elevators to track when the `DEBUG` flag is set. To track all, leave the array blank. To track none, populate with `[-1]`
+		 * @param {array} DEBUG_ELEMENTS.FLOORS array determining which floors to track when the `DEBUG` flag is set. To track all, leave the array blank. To track none, populate with `[-1]`
+		 * @param {number} FULL The max `loadFactor()` for a given elevator that will stop for a floor that isn't internally pressed
+		 * @param {integer} BOTTOM_FLOOR The bottom floor
+		 * @param {integer} TOP_FLOOR The top floor, derived by the `floors` array size
+		 * @param {integer} NUM_ELEVATORS The number of elevators, derived by the `elevators` array size
+		 */
 		var settings = {
 			DEBUG: true,
 			DEBUG_ELEMENTS: {
@@ -16,6 +34,12 @@
 		var initBreak = false;
 
 		// Helper Functions ====================================================
+		/**
+		 * Helper class for maintaining an array with unique values that is automatically sorted
+		 *
+		 * @name UniqueArray
+		 * @param {String} [direction] if direction is `false` or `"down"`, the array will be reverse sorted
+		 */
 		var UniqueArray = function (direction) {
 			_a = [];
 			_sortRev = false;
@@ -25,15 +49,42 @@
 			}
 
 			return {
+				/**
+				 * Get the array
+				 *
+				 * @name UniqueArray.get
+				 * @returns {Array} the stored array
+				 */
 				get: function () {
 					return _a;
 				},
+				/**
+				 * Find a given value in the array
+				 *
+				 * @name UniqueArray.find
+				 * @param {variant} v value
+				 * @returns {integer} index of passed-in value, or `-1` if not found
+				 */
 				find: function (v) {
 					return _a.indexOf(v);
 				},
+				/**
+				 * Find out if a given value is present in the array
+				 *
+				 * @name UniqueArray.has
+				 * @param {variant} v value
+				 * @returns {boolean} whether the value is present in the array
+				 */
 				has: function (v) {
 					return (this.find(v) > -1);
 				},
+				/**
+				 * Add a value to the array if it is not already present
+				 *
+				 * @name UniqueArray.add
+				 * @param {variant} v value
+				 * @returns {array} the stored array
+				 */
 				add: function (v) {
 					if (Array.isArray(v)) {
 						_this = this;
@@ -47,6 +98,13 @@
 
 					return _a;
 				},
+				/**
+				 * Remove a value from the array if it exists
+				 *
+				 * @name UniqueArray.remove
+				 * @param {variant} v value
+				 * @returns {array} the stored array
+				 */
 				remove: function (v) {
 					var loc = this.find(v);
 
@@ -56,6 +114,15 @@
 
 					return _a;
 				},
+				/**
+				 * Sort the stored array
+				 *
+				 * @name UniqueArray.sort
+				 * @param {variant} [rev] `true` or `"down"` to sort descending;
+				 * `false` or `"up"` to sort ascending;
+				 * if parameter not given, sort in the saved way
+				 * @returns {array} the stored array
+				 */
 				sort: function (rev) {
 					_a.sort();
 
@@ -73,10 +140,32 @@
 							_sortRev = false;
 						}
 					}
+
+					return _a;
 				}
 			}
 		};
 
+		/**
+		 * todo
+		 *
+		 * @name callAvailableElevator
+		 * @param {integer} floorNum floor to attempt to call the elevator to
+		 * @param {string} direction the direction of the requeest, either `"up"` or `"down"`
+		 * @return {object}
+		 * ```
+		 * {
+		 *     elevator,
+		 *     callStatus,
+		 *     bestAvailability,
+		 *     elevatorCalled
+		 * }
+		 * ```
+		 * * **integer** *elevator* todo
+		 * * **integer** *callStatus* todo
+		 * * **integer** *bestAvailability* todo
+		 * * **integer** *elevatorCalled* todo
+		 */
 		var callAvailableElevator = function (floorNum, direction) {
 			var bestElevator = -1,
 				bestAvailability = -1,
@@ -107,6 +196,28 @@
 			};
 		};
 
+		/**
+		 * todo
+		 *
+		 * @name floorsWaiting
+		 * @return {object}
+		 * ```
+		 * {
+		 *     queue: {
+		 *         up,
+		 *         down
+		 *     }
+		 *     bottomUp,
+		 *     topDown,
+		 *     noneWaiting
+		 * }
+		 * ```
+		 * * **array** *queue.up* todo
+		 * * **array** *queue.down* todo
+		 * * **integer** *bottomUp* todo
+		 * * **integer** *topDown* todo
+		 * * **boolean** *noneWaiting* todo
+		 */
 		var floorsWaiting = function () {
 			var queue = {
 					up: [],
@@ -139,6 +250,12 @@
 			};
 		};
 
+		/**
+		 * todo
+		 *
+		 * @name elevatorStatus
+		 * @return {array} Array of `debugStatus()` for all elevators
+		 */
 		var elevatorsStatus = function () {
 			var _elevators = [];
 
@@ -149,6 +266,20 @@
 			return _elevators;
 		};
 
+		/**
+		 * Given the elevator or floor, show the debug message with relevant context based on the object's `statusText()` function
+		 *
+		 * @name debugStatus
+		 * @param {string} message Debug message to be shown in the console
+		 * @param {object} obj Either an `elevator` or `floor`
+		 * @return {object}
+		 * ```
+		 * {
+		 *     floors,
+		 *     elevators
+		 * }
+		 * ```
+		 */
 		var debugStatus = function (message, obj) {
 			var status = {
 				floors: floorsWaiting(),
@@ -198,32 +329,57 @@
 			return status;
 		};
 
+		/**
+		 * Returns the closer of the two options to the `startFloor`
+		 *
+		 * @name closerFloor
+		 * @param {integer} startFloor current floor
+		 * @param {integer} option1 the first floor to compare
+		 * @param {integer} option2 the second floor to compare
+		 * @return {integer} the closer floor number
+		 */
 		var closerFloor = function (startFloor, option1, option2) {
 			return (Math.abs(startFloor - option1) < Math.abs(startFloor - option2)) ? option1 : option2;
 		};
 
 		// Elevator Code =======================================================
 		elevators.forEach(function (elevator, elevator_index) {
-			/** Elevator Properties ********************************************
-			 *  - goToFloor(floorNum, [force])
-			 *  - stop()
-			 *  - currentFloor()
-			 *  - goingUpIndicator([set])
-			 *  - goingDownIndicator([set])
-			 *  - loadFactor()
-			 *  - destinationQueue
-			 *  - checkDestinationQueue()
+			/**
+			 * @class elevator
 			 *
-			 * UNDOCUMENTED FUNCTIONS
-			 *  - getPressedFloors()
-			 ******************************************************************/
+			 * Each elevator operates independently, without a master queue.
+			 *
+			 * ### Properties:
+			 * * **array** *destinationQueue* The current destination queue, meaning the floor numbers the elevator is scheduled to go to. Can be modified and emptied if desired. Note that you need to call `checkDestinationQueue()` for the change to take effect immediately.
+			 * * **integer** *goingTo* The longest distance the elevator is heading in the current direction
+			 * * **string** *objType* set to `"elevator"`
+			 * * **integer** *index* set to the `elevator_index` to ensure that an elevator can be referenced from the array object
+			 */
 
-			// Custom Elevator Properties --------------------------------------
 			elevator.goingTo = -1;
 			elevator.objType = "elevator";
 			elevator.index = elevator_index;
 
-			// Custom Elevator Functions ---------------------------------------
+			/**
+			 * Checks the destination queue for any new destinations to go to. Note that you only need to call this if you modify the destination queue explicitly.
+			 *
+			 * @method elevator.checkDestinationQueue
+			 */
+
+			/**
+			 * Gets the floor number that the elevator currently is on.
+			 *
+			 * @method elevator.currentFloor
+			 * @return {integer} the floor number that the elevator currently is on
+			 */
+
+			/**
+			 * Gets or sets the elevator's direction based on the `goingUpIndicator` and `goingDownIndicator`
+			 *
+			 * @method elevator.direction
+			 * @param {string} [dir] direction, optional. `"up"`, `"down"`, or `"clear"`
+			 * @return {string} direction, `"up"`, `"down"`, or `""` based on the current status of the indicator lights
+			 */
 			elevator.direction = function (dir) {
 				switch (dir) {
 				case "up":
@@ -250,6 +406,57 @@
 				}
 			};
 
+			/**
+			 * Gets the currently pressed floor numbers as an array.
+			 *
+			 * @method elevator.getPressedFloors
+			 * @return {array} Currently pressed floor numbers
+			 */
+
+			/**
+			 * Gets or sets the going up indicator, which will affect passenger behaviour when stopping at floors.
+			 *
+			 * @method elevator.goingUpIndicator
+			 * @param {boolean} [set]
+			 * @return {boolean}
+			 */
+
+			/**
+			 * Gets or sets the going down indicator, which will affect passenger behaviour when stopping at floors.
+			 *
+			 * @method elevator.goingDownIndicator
+			 * @param {boolean} [set]
+			 * @return {boolean}
+			 */
+
+			/**
+			 * Queue the elevator to go to specified floor number.
+			 *
+			 * @method elevator.goToFloor
+			 * @param {integer} floorNum The floor to send the elevator
+			 * @param {boolean} [force] If true, the elevator will go to that floor directly, and then go to any other queued floors.
+			 */
+
+			/**
+			 * Gets the load factor of the elevator.
+			 *
+			 * @method elevator.loadFactor
+			 * @return {number} `0` means empty, `1` means full. Varies with passenger weights, which vary - not an exact measure.
+			 */
+
+			/**
+			 * Generates a short string description of the elevator and current floor to be used in debugging
+			 *
+			 * @method elevator.statusText
+			 * @return {string}
+			 *
+			 * - `[E#^]` when elevator direction is up
+			 * - `[E#v]` when elevator direction is down
+			 * - `[E#x]` when elevator direction is not set
+			 * - Where `#` is the elevator number
+			 * - Includes the `floor.statusText()` based on the elevator's current floor
+			 *   - _example: `[E0^][F2^_]` - elevator 0, going up, at floor 2 with the up indicator lit_
+			 */
 			elevator.statusText = function () {
 				var floor = floors[elevator.currentFloor()],
 					text = "E" + elevator_index;
@@ -271,6 +478,12 @@
 
 				return text;
 			};
+
+			/**
+			 * Clear the destination queue and stop the elevator if it is moving. Note that you normally don't need to stop elevators - it is intended for advanced solutions with in-transit rescheduling logic.
+			 *
+			 * @method elevator.stop
+			 */
 
 			elevator.debugStatus = function () {
 				return {
@@ -680,12 +893,12 @@
 
 		// Floor Code ==========================================================
 		floors.forEach(function (floor, floor_index) {
-			/** Elevator Properties ********************************************
-			 *  - floorNum()
-			 *
-			 * UNDOCUMENTED PROPERTIES
-			 *  - buttonStates { down: "" , up: "" }
-			 ******************************************************************/
+			//* Elevator Properties ********************************************
+			//  - floorNum()
+			//
+			// UNDOCUMENTED PROPERTIES
+			//  - buttonStates { down: "" , up: "" }
+			//*****************************************************************/
 
 			// Custom Properties -----------------------------------------------
 			floor.objType = "floor";
