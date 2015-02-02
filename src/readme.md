@@ -386,7 +386,7 @@ Generates a short string description of the elevator and current floor to be use
 - `[E#^]` when elevator direction is up
 - `[E#v]` when elevator direction is down
 - `[E#x]` when elevator direction is not set
-- Where `#` is the elevator number
+- _Where `#` is the elevator number_
 - Includes the `floor.statusText()` based on the elevator's current floor
   - _example: `[E0^][F2^_]` - elevator 0, going up, at floor 2 with the up indicator lit_
 
@@ -436,7 +436,7 @@ Returns whether at least one of the buttons is pressed
 
 ### Return:
 
-* **boolean** 
+* **boolean** Whether one of the floor's buttons is pressed
 
 ## floor.downPressed()
 
@@ -444,13 +444,26 @@ Returns whether the down button is pressed
 
 ### Return:
 
-* **boolean** 
+* **boolean** Whether the down button is pressed
 
-## floor.statusText()
+## floor.floorNum()
 
 ### Return:
 
-* **string** todo
+* **integer** The floor's number
+
+## floor.statusText()
+
+Generates a short string description of the floor to be used in debugging.
+
+### Return:
+
+* **string** 
+- `[F#^v]` when both up and down buttons are lit
+- `[F#^_]` when just the up button is lit
+- `[F#_v]` when just the down button is lit
+- `[F#__]` when neighter button is lit
+- _Where `#` is the `floorNum()`_
 
 ## floor.upPressed()
 
@@ -458,7 +471,17 @@ Returns whether the up button is pressed
 
 ### Return:
 
-* **boolean** 
+* **boolean** Whether the up button is pressed
+
+## elevator.event("`up_button_pressed`")
+
+Triggered when someone has pressed the up button at a floor.
+Note that passengers will press the button again if they fail to enter an elevator.
+
+## elevator.event("`down_button_pressed`")
+
+Triggered when someone has pressed the down button at a floor.
+Note that passengers will press the button again if they fail to enter an elevator.
 
 <!-- End src/elevator.js -->
 

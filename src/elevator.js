@@ -742,7 +742,7 @@
              * - `[E#^]` when elevator direction is up
              * - `[E#v]` when elevator direction is down
              * - `[E#x]` when elevator direction is not set
-             * - Where `#` is the elevator number
+             * - _Where `#` is the elevator number_
              * - Includes the `floor.statusText()` based on the elevator's current floor
              *   - _example: `[E0^][F2^_]` - elevator 0, going up, at floor 2 with the up indicator lit_
              */
@@ -1024,7 +1024,7 @@
              * Returns whether at least one of the buttons is pressed
              *
              * @method floor.buttonPressed
-             * @return {boolean} 
+             * @return {boolean} Whether one of the floor's buttons is pressed
              */
             floor.buttonPressed = function () {
                 return (floor.upPressed || floor.downPressed);
@@ -1034,15 +1034,28 @@
              * Returns whether the down button is pressed
              *
              * @method floor.downPressed
-             * @return {boolean} 
+             * @return {boolean} Whether the down button is pressed
              */
             floor.downPressed = function () {
                 return (floor.buttonStates.down !== "");
             };
 
             /**
+             * @method floor.floorNum
+             * @returns {integer} The floor's number
+             */
+
+            /**
+             * Generates a short string description of the floor to be used in debugging.
+             *
              * @method floor.statusText
-             * @return {string} todo 
+             * @return {string}
+             *
+             * - `[F#^v]` when both up and down buttons are lit
+             * - `[F#^_]` when just the up button is lit
+             * - `[F#_v]` when just the down button is lit
+             * - `[F#__]` when neighter button is lit
+             * - _Where `#` is the `floorNum()`_
              */
             floor.statusText = function () {
                 var text = "F" + floor.floorNum();
@@ -1059,16 +1072,20 @@
              * Returns whether the up button is pressed
              *
              * @method floor.upPressed
-             * @return {boolean} 
+             * @return {boolean} Whether the up button is pressed
              */
             floor.upPressed = function () {
                 return (floor.buttonStates.up !== "");
             };
 
             // Floor Events ----------------------------------------------------
+            /**
+             * Triggered when someone has pressed the up button at a floor.
+             * Note that passengers will press the button again if they fail to enter an elevator.
+             *
+             * @name elevator.event("`up_button_pressed`")
+             */
             floor.on("up_button_pressed", function () {
-                // Triggered when someone has pressed the up button at a floor. 
-                // Note that passengers will press the button again if they fail to enter an elevator.
                 var available = callAvailableElevator(floor.floorNum(), "up"),
                     debug = [];
 
@@ -1085,9 +1102,14 @@
                     debugStatus(debug, floor);
                 }
             });
+
+            /**
+             * Triggered when someone has pressed the down button at a floor.
+             * Note that passengers will press the button again if they fail to enter an elevator.
+             *
+             * @name elevator.event("`down_button_pressed`")
+             */
             floor.on("down_button_pressed", function () {
-                // Triggered when someone has pressed the down button at a floor. 
-                // Note that passengers will press the button again if they fail to enter an elevator.
                 var available = callAvailableElevator(floor.floorNum(), "down"),
                     debug = [];
 
