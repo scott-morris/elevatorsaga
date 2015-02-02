@@ -2,7 +2,8 @@
 
 This is my solution to Elevator Saga at http://play.elevatorsaga.com/
 
-For more information on the details of the code, see the /src/ directory.
+For more information on the details of the code, see the /src/ directory. Source
+code documentation was created using Markdox (http://cbou.github.io/markdox/)
 
 ## Base Code Template
 Each time I refactored the code, I tried to start with a common base

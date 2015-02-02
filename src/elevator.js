@@ -123,6 +123,23 @@
 
                     return _a;
                 },
+                removeBefore: function (v) {
+                    if (_a.length === 0) {
+                        return _a;
+                    }
+
+                    var compare = function (i, v) {
+                            return (_sortRev) ? (i < v) : (i > v);
+                        },
+                        remove = compare(_a[0], v);
+
+                    while (remove) {
+                        _a.shift();
+                        remove = (_a.length > 0) ? compare(_a[0], v), : false;
+                    }
+
+                    return _a;
+                },
                 /**
                  * Sort the stored array
                  *
@@ -737,33 +754,41 @@
 
             /**
              * @method elevator.refreshQueue
+             * @return {boolean} Whether the queue has been changed
              */
             elevator.refreshQueue = function () {
                 var oldQueue = elevator.destinationQueue,
-                    oldDestination = elevator.goingTo,
                     elevatorButtons = elevator.getPressedFloors(),
-                    newQueue = new UniqueArray(elevator.direction);
+                    oldDestination = elevator.goingTo,
+                    currentFloor = elevator.currentFloor(),
+                    nextFloor = (oldQueue.length > 0) ? oldQueue[0] : -1,
+                    moving = (oldQueue.length > 0) ? (currentFloor < nextFloor) ? "up" : "down" : elevator.direction,
+                    newQueue = new UniqueArray(moving);
 
                 // One set of rules if the destination queue is empty
-                if (elevator.destinationQueue.length === 0) {
+                if (oldQueue.length === 0) {
                     if (elevatorButtons.length > 0) {
+                        // The elevator queue is empty, but shouldn't be - use the internal buttons
                         elevator.destinationQueue = [];
                         newQueue.add(elevatorButtons);
-                    } else { // The elevator should be idle, reroute
-                        elevator.stop();
+
+                        elevator.destinationQueue = newQueue.get();
+                        elevator.checkDestinationQueue();
+
+                        return true;
+                    } else if (elevator.loadFactor() === 0) {
+                        // The elevator should be idle, reroute
+                        elevator.stop(); // force the elevator into idle state
+                        return true;
+                    } else {
+                        // If the elevator is not empty, wait for it
+                        return false;
                     }
-                } else {
-                    // Determine which way the elevator is travelling
-                    var currentFloor = elevator.currentFloor(),
-                        nextFloor = elevator.destinationQueue[0],
-                        moving = (currentFloor < nextFloor) ? "up" : "down";
 
                 }
 
-                // If the elevator ...
-                if (floors[elevator.goingTo].buttonPressed()) {
-                    newQueue.add(elevator.goingTo);
-                } else {
+                // Another set of rules if the destination queue is not empty
+                else {
 
                 }
             };
@@ -930,7 +955,7 @@
                     debug.push("elevator already planning to stop, index " + queueIndex);
                 }
 
-                // If the elevator is already going to stop here, then we don't need to do anything special
+                // If the elevator is already going to stop here, but not next, then we just need to move this floor to the front of the queue
                 if (queueIndex > 0) {
                     debug.push("elevator already planning to stop, index " + queueIndex + ", reordered");
 
