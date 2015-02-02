@@ -775,7 +775,12 @@
 			 */
 
 			// Elevator Events -------------------------------------------------
-			elevator.on("idle", function () {
+			/**
+             * Triggered when the elevator has completed all its tasks and is not doing anything.
+             *
+             * @name elevator.event("`idle`")
+             */
+            elevator.on("idle", function () {
 				// Debugger - Allow for Breakpoints
 				if ((settings.DEBUG) && (!initBreak)) {
 					debugger;
@@ -850,8 +855,14 @@
 					debugStatus(debug, elevator);
 				}
 			});
+
+            /**
+             * Triggered when a passenger has pressed a button inside the elevator.
+             *
+             * @name elevator.event("`floor_button_pressed`")
+             * @param {integer} floorNum The floor button that was pressed
+             */
 			elevator.on("floor_button_pressed", function (floorNum) {
-				// Triggered when a passenger has pressed a button inside the elevator.
 				var buttonDirection = (floorNum > elevator.currentFloor()) ? "up" : "down",
 					callStatus = elevator.goTo(floorNum, buttonDirection),
 					debug = [];
@@ -864,10 +875,15 @@
 					debugStatus(debug, elevator);
 				}
 			});
+
+            /**
+             * Triggered slightly before the elevator will pass a floor. A good time to decide whether to stop at that floor. Note that this event is not triggered for the destination floor. Direction is either `"up"` or `"down"`.
+             *
+             * @name elevator.event("`passing_floor`")
+             * @param {integer} floorNum The floor that the elevator is about to pass
+             * @param {string} direction The direction, `"up"` or `"down"`, that the elevator is travelling
+             */
 			elevator.on("passing_floor", function (floorNum, direction) {
-				// Triggered slightly before the elevator will pass a floor. A good time to decide 
-				// whether to stop at that floor. Note that this event is not triggered for the 
-				// destination floor. Direction is either "up" or "down".
 				var floor = floors[floorNum],
 					queueIndex = elevator.destinationQueue.indexOf(floorNum),
 					debug = [];
@@ -933,8 +949,14 @@
 					debugStatus(debug, elevator);
 				}
 			});
+
+            /**
+             * Triggered when the elevator has arrived at a floor.
+             *
+             * @name elevator.event("`stopped_at_floor`")
+             * @param {integer} floorNum The floor the elevator is stopped at
+             */
 			elevator.on("stopped_at_floor", function (floorNum) {
-				// Triggered when the elevator has arrived at a floor.
 				var floor = floors[floorNum],
 					debug = [];
 
@@ -985,33 +1007,63 @@
 			//  - buttonStates { down: "" , up: "" }
 			//*****************************************************************/
 
-			// Custom Properties -----------------------------------------------
+            /**
+             * @class floor
+             *
+             * ### Properties:
+             * - **string** *buttonStates.down* todo
+             * - **string** *buttonStates.up* todo
+             * - **string** *objType* todo
+             * - **integer** *index* todo
+             */
+
 			floor.objType = "floor";
 			floor.index = floor_index;
 
-			// Custom Functions ------------------------------------------------
-			floor.statusText = function () {
-				var text = "F" + floor.floorNum();
+            /**
+             * Returns whether at least one of the buttons is pressed
+             *
+             * @method floor.buttonPressed
+             * @return {boolean} 
+             */
+            floor.buttonPressed = function () {
+                return (floor.upPressed || floor.downPressed);
+            }
 
-				text += (floor.upPressed()) ? "^" : "_";
-				text += (floor.downPressed()) ? "v" : "_";
+            /**
+             * Returns whether the down button is pressed
+             *
+             * @method floor.downPressed
+             * @return {boolean} 
+             */
+            floor.downPressed = function () {
+                return (floor.buttonStates.down !== "");
+            };
 
-				text = "[" + text + "]";
+            /**
+             * @method floor.statusText
+             * @return {string} todo 
+             */
+            floor.statusText = function () {
+                var text = "F" + floor.floorNum();
 
-				return text;
-			};
+                text += (floor.upPressed()) ? "^" : "_";
+                text += (floor.downPressed()) ? "v" : "_";
 
-			floor.upPressed = function () {
-				return (floor.buttonStates.up !== "");
-			};
+                text = "[" + text + "]";
 
-			floor.downPressed = function () {
-				return (floor.buttonStates.down !== "");
-			};
+                return text;
+            };
 
-			floor.buttonPressed = function () {
-				return (floor.upPressed || floor.downPressed);
-			}
+            /**
+             * Returns whether the up button is pressed
+             *
+             * @method floor.upPressed
+             * @return {boolean} 
+             */
+            floor.upPressed = function () {
+                return (floor.buttonStates.up !== "");
+            };
 
 			// Floor Events ----------------------------------------------------
 			floor.on("up_button_pressed", function () {

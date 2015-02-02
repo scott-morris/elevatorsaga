@@ -394,5 +394,71 @@ Generates a short string description of the elevator and current floor to be use
 
 Clear the destination queue and stop the elevator if it is moving. Note that you normally don't need to stop elevators - it is intended for advanced solutions with in-transit rescheduling logic.
 
+## elevator.event("`idle`")
+
+Triggered when the elevator has completed all its tasks and is not doing anything.
+
+## elevator.event("`floor_button_pressed`")
+
+Triggered when a passenger has pressed a button inside the elevator.
+
+### Params:
+
+* **integer** *floorNum* The floor button that was pressed
+
+## elevator.event("`passing_floor`")
+
+Triggered slightly before the elevator will pass a floor. A good time to decide whether to stop at that floor. Note that this event is not triggered for the destination floor. Direction is either `"up"` or `"down"`.
+
+### Params:
+
+* **integer** *floorNum* The floor that the elevator is about to pass
+* **string** *direction* The direction, `"up"` or `"down"`, that the elevator is travelling
+
+## elevator.event("`stopped_at_floor`")
+
+Triggered when the elevator has arrived at a floor.
+
+### Params:
+
+* **integer** *floorNum* The floor the elevator is stopped at
+
+## floor 
+### Properties:
+- **string** *buttonStates.down* todo
+- **string** *buttonStates.up* todo
+- **string** *objType* todo
+- **integer** *index* todo
+
+## floor.buttonPressed()
+
+Returns whether at least one of the buttons is pressed
+
+### Return:
+
+* **boolean** 
+
+## floor.downPressed()
+
+Returns whether the down button is pressed
+
+### Return:
+
+* **boolean** 
+
+## floor.statusText()
+
+### Return:
+
+* **string** todo
+
+## floor.upPressed()
+
+Returns whether the up button is pressed
+
+### Return:
+
+* **boolean** 
+
 <!-- End src/elevator.js -->
 
