@@ -120,10 +120,10 @@ todo
 }
 ```
 
-* **integer** *elevator* todo
-* **integer** *callStatus* todo
-* **integer** *bestAvailability* todo
-* **integer** *elevatorCalled* todo
+- **integer** *elevator* todo
+- **integer** *callStatus* todo
+- **integer** *bestAvailability* todo
+- **integer** *elevatorCalled* todo
 
 ## floorsWaiting()
 
@@ -144,11 +144,11 @@ todo
 }
 ```
 
-* **array** *queue.up* todo
-* **array** *queue.down* todo
-* **integer** *bottomUp* todo
-* **integer** *topDown* todo
-* **boolean** *noneWaiting* todo
+- **integer[]** *queue.up* todo
+- **integer[]** *queue.down* todo
+- **integer** *bottomUp* todo
+- **integer** *topDown* todo
+- **boolean** *noneWaiting* todo
 
 ## elevatorStatus()
 
@@ -177,6 +177,9 @@ Given the elevator or floor, show the debug message with relevant context based 
 }
 ```
 
+- **object[]** *floors* todo
+- **object[]** *elevators* todo
+
 ## closerFloor(startFloor, option1, option2)
 
 Returns the closer of the two options to the `startFloor`
@@ -195,10 +198,27 @@ Returns the closer of the two options to the `startFloor`
 Each elevator operates independently, without a master queue.
 
 ### Properties:
-* **array** *destinationQueue* The current destination queue, meaning the floor numbers the elevator is scheduled to go to. Can be modified and emptied if desired. Note that you need to call `checkDestinationQueue()` for the change to take effect immediately.
-* **integer** *goingTo* The longest distance the elevator is heading in the current direction
-* **string** *objType* set to `"elevator"`
-* **integer** *index* set to the `elevator_index` to ensure that an elevator can be referenced from the array object
+- **integer[]** *destinationQueue* The current destination queue, meaning the floor numbers the elevator is scheduled to go to. Can be modified and emptied if desired. Note that you need to call `checkDestinationQueue()` for the change to take effect immediately.
+- **integer** *goingTo* The longest distance the elevator is heading in the current direction
+- **string** *objType* set to `"elevator"`
+- **integer** *index* set to the `elevator_index` to ensure that an elevator can be referenced from the array object
+
+## elevator.available(floorNum, direction)
+
+Returns a weighted availablility to go to a given floor / direction combination
+
+### Params:
+
+* **integer** *floorNum* todo
+* **string** *direction* todo
+
+### Return:
+
+* **integer** returns a weighted availability 
+- `2`: elevator already on its way to this floor
+- `1`: elevator idle and available to be assigned
+- `0`: busy, but might be going past this floor
+- `-1`: going the other way past this floor, not available right now
 
 ## elevator.checkDestinationQueue()
 
@@ -211,6 +231,20 @@ Gets the floor number that the elevator currently is on.
 ### Return:
 
 * **integer** the floor number that the elevator currently is on
+
+## elevator.debugStatus()
+
+### Return:
+
+* **object** 
+```
+```
+
+- **integer** *index* todo
+- **integer** *goingTo* todo
+- **string** *direction* todo
+- **integer[]** *queue* todo
+- **intger[]** *buttons* todo
 
 ## elevator.direction([dir])
 
@@ -256,6 +290,51 @@ Gets or sets the going down indicator, which will affect passenger behaviour whe
 
 * **boolean** 
 
+## elevator.goDown(floorNum, [forceStop])
+
+### Params:
+
+* **integer** *floorNum* The floor to send the elevator
+* **boolean** *[forceStop]* If true, the elevator will go to that floor directly, and then go to any other queued floors.
+
+### Return:
+
+* **object** 
+```
+{
+    success,
+    status,
+    direction
+}
+```
+
+- **boolean** *success* Whether the call to the floor was successful
+- **string** *status* If not successful, the reason why not
+- **string** *direction* What direction the elevator was requested, in this case always `"down"`
+
+## elevator.goTo(floorNum, [direction], [forceStop])
+
+### Params:
+
+* **integer** *floorNum* The floor to send the elevator
+* **string** *[direction]* If set, force the direction of the request. If not, the direction will be automatically set based on the relationship between the requested floor and the elevator's current floor.
+* **boolean** *[forceStop]* If true, the elevator will go to that floor directly, and then go to any other queued floors.
+
+### Return:
+
+* **object** 
+```
+{
+    success,
+    status,
+    direction
+}
+```
+
+- **boolean** *success* Whether the call to the floor was successful
+- **string** *status* If not successful, the reason why not
+- **string** *direction* What direction the elevator was requested, in this case always `"up"`
+
 ## elevator.goToFloor(floorNum, [force])
 
 Queue the elevator to go to specified floor number.
@@ -265,6 +344,28 @@ Queue the elevator to go to specified floor number.
 * **integer** *floorNum* The floor to send the elevator
 * **boolean** *[force]* If true, the elevator will go to that floor directly, and then go to any other queued floors.
 
+## elevator.goUp(floorNum, [forceStop])
+
+### Params:
+
+* **integer** *floorNum* The floor to send the elevator
+* **boolean** *[forceStop]* If true, the elevator will go to that floor directly, and then go to any other queued floors.
+
+### Return:
+
+* **object** 
+```
+{
+    success,
+    status,
+    direction
+}
+```
+
+- **boolean** *success* Whether the call to the floor was successful
+- **string** *status* If not successful, the reason why not
+- **string** *direction* What direction the elevator was requested, in this case always `"up"`
+
 ## elevator.loadFactor()
 
 Gets the load factor of the elevator.
@@ -272,6 +373,8 @@ Gets the load factor of the elevator.
 ### Return:
 
 * **number** `0` means empty, `1` means full. Varies with passenger weights, which vary - not an exact measure.
+
+## elevator.refreshQueue()
 
 ## elevator.statusText()
 
@@ -290,12 +393,6 @@ Generates a short string description of the elevator and current floor to be use
 ## elevator.stop()
 
 Clear the destination queue and stop the elevator if it is moving. Note that you normally don't need to stop elevators - it is intended for advanced solutions with in-transit rescheduling logic.
-
-Returns a weighted availability
-   2 : elevator already on its way
-   1 : idle, feel free
-   0 : busy, but might be going past
-  -1 : going the other way past this floor, not available
 
 <!-- End src/elevator.js -->
 

@@ -163,10 +163,10 @@
 		 * }
 		 * ```
          *
-		 * * **integer** *elevator* todo
-		 * * **integer** *callStatus* todo
-		 * * **integer** *bestAvailability* todo
-		 * * **integer** *elevatorCalled* todo
+		 * - **integer** *elevator* todo
+		 * - **integer** *callStatus* todo
+		 * - **integer** *bestAvailability* todo
+		 * - **integer** *elevatorCalled* todo
 		 */
 		var callAvailableElevator = function (floorNum, direction) {
 			var bestElevator = -1,
@@ -216,11 +216,11 @@
 		 * }
 		 * ```
          *
-		 * * **array** *queue.up* todo
-		 * * **array** *queue.down* todo
-		 * * **integer** *bottomUp* todo
-		 * * **integer** *topDown* todo
-		 * * **boolean** *noneWaiting* todo
+		 * - **integer[]** *queue.up* todo
+		 * - **integer[]** *queue.down* todo
+		 * - **integer** *bottomUp* todo
+		 * - **integer** *topDown* todo
+		 * - **boolean** *noneWaiting* todo
 		 */
 		var floorsWaiting = function () {
 			var queue = {
@@ -285,6 +285,8 @@
 		 * }
 		 * ```
          *
+         * - **object[]** *floors* todo
+         * - **object[]** *elevators* todo
 		 */
 		var debugStatus = function (message, obj) {
 			var status = {
@@ -356,15 +358,54 @@
 			 * Each elevator operates independently, without a master queue.
 			 *
 			 * ### Properties:
-			 * * **array** *destinationQueue* The current destination queue, meaning the floor numbers the elevator is scheduled to go to. Can be modified and emptied if desired. Note that you need to call `checkDestinationQueue()` for the change to take effect immediately.
-			 * * **integer** *goingTo* The longest distance the elevator is heading in the current direction
-			 * * **string** *objType* set to `"elevator"`
-			 * * **integer** *index* set to the `elevator_index` to ensure that an elevator can be referenced from the array object
+			 * - **integer[]** *destinationQueue* The current destination queue, meaning the floor numbers the elevator is scheduled to go to. Can be modified and emptied if desired. Note that you need to call `checkDestinationQueue()` for the change to take effect immediately.
+			 * - **integer** *goingTo* The longest distance the elevator is heading in the current direction
+			 * - **string** *objType* set to `"elevator"`
+			 * - **integer** *index* set to the `elevator_index` to ensure that an elevator can be referenced from the array object
 			 */
 
 			elevator.goingTo = -1;
 			elevator.objType = "elevator";
 			elevator.index = elevator_index;
+
+            /**
+             * Returns a weighted availablility to go to a given floor / direction combination
+             *
+             * @method elevator.available
+             * @param {integer} floorNum todo
+             * @param {string} direction todo
+             * @return {integer} returns a weighted availability
+             *
+             * - `2`: elevator already on its way to this floor
+             * - `1`: elevator idle and available to be assigned
+             * - `0`: busy, but might be going past this floor
+             * - `-1`: going the other way past this floor, not available right now
+             */
+            elevator.available = function (floorNum, direction) {
+                // If the elevator is heading to this floor, it's the best candidate
+                if (elevator.goingTo === floorNum) {
+                    return 2;
+                }
+
+                // If the elevator is idle, it is available for use
+                if ((elevator.destinationQueue.length === 0) && (elevator.getPressedFloors().length === 0)) {
+                    return 1;
+                }
+
+                // If the elevator is going past in the other direction, it's not available right now
+                if ((elevator.direction === "up" && direction === "down" && elevator.goingTo > floorNum) ||
+                    (elevator.direction === "down" && direction === "up" && elevator.goingTo < floorNum)) {
+
+                    return -1;
+                }
+
+                // If the elevator is already full, don't take another assignment
+                if (elevator.loadFactor() >= settings.FULL) {
+                    return -1;
+                }
+
+                return 0;
+            };
 
 			/**
 			 * Checks the destination queue for any new destinations to go to. Note that you only need to call this if you modify the destination queue explicitly.
@@ -378,6 +419,29 @@
 			 * @method elevator.currentFloor
 			 * @return {integer} the floor number that the elevator currently is on
 			 */
+
+            /**
+             * @method elevator.debugStatus
+             * @return {object}
+             *
+             * ```
+             * ```
+             *
+             * - **integer** *index* todo
+             * - **integer** *goingTo* todo
+             * - **string** *direction* todo
+             * - **integer[]** *queue* todo
+             * - **intger[]** *buttons* todo
+             */
+            elevator.debugStatus = function () {
+                return {
+                    index: elevator_index,
+                    goingTo: elevator.goingTo,
+                    direction: elevator.direction(),
+                    queue: elevator.destinationQueue,
+                    buttons: elevator.getPressedFloors()
+                };
+            }
 
 			/**
 			 * Gets or sets the elevator's direction based on the `goingUpIndicator` and `goingDownIndicator`
@@ -435,13 +499,212 @@
 			 * @return {boolean}
 			 */
 
-			/**
-			 * Queue the elevator to go to specified floor number.
-			 *
-			 * @method elevator.goToFloor
-			 * @param {integer} floorNum The floor to send the elevator
-			 * @param {boolean} [force] If true, the elevator will go to that floor directly, and then go to any other queued floors.
-			 */
+            /**
+             * @method elevator.goDown
+             * @param {integer} floorNum The floor to send the elevator
+             * @param {boolean} [forceStop] If true, the elevator will go to that floor directly, and then go to any other queued floors.
+             * @return {object}
+             *
+             * ```
+             * {
+             *     success,
+             *     status,
+             *     direction
+             * }
+             * ```
+             *
+             * - **boolean** *success* Whether the call to the floor was successful
+             * - **string** *status* If not successful, the reason why not
+             * - **string** *direction* What direction the elevator was requested, in this case always `"down"`
+             */
+            elevator.goDown = function (floorNum, forceStop) {
+                if ((floorNum === elevator.currentFloor()) && (elevator.destinationQueue.indexOf(floorNum) > -1)) {
+                    return {
+                        success: false,
+                        status: "same floor",
+                        direction: "down"
+                    };
+                }
+
+                if ((floorNum < settings.BOTTOM_FLOOR) || (floorNum > settings.TOP_FLOOR)) {
+                    return {
+                        success: false,
+                        status: "invalid floor: " + floorNum,
+                        direction: "down"
+                    };
+                }
+
+                if (arguments.length === 0) {
+                    return {
+                        success: false,
+                        status: "no floorNum",
+                        direction: "down"
+                    };
+                }
+
+                if ((elevator.destinationQueue.length > 0) && (floorNum > elevator.destinationQueue[0])) {
+                    return {
+                        success: false,
+                        status: "backtrack",
+                        direction: "down"
+                    };
+                }
+
+                if ((elevator.direction === "up") && (floorNum <= elevator.goingTo)) {
+                    return {
+                        success: false,
+                        status: "going past",
+                        direction: "down"
+                    };
+                }
+
+                // Set Elevator Status
+                elevator.direction("down");
+                elevator.goingTo = (elevator.goingTo === -1 || floorNum < elevator.goingTo) ? floorNum : elevator.goingTo;
+
+                // Move the Elevator
+                if (floorNum) {
+                    if (arguments.length === 1) {
+                        // Add the floor and sort so we stop in order
+                        elevator.goToFloor(floorNum);
+                        elevator.destinationQueue.sort();
+                        elevator.destinationQueue.reverse();
+                        elevator.checkDestinationQueue();
+                    } else {
+                        elevator.goToFloor(floorNum, forceStop);
+                    }
+                }
+
+                return {
+                    success: true,
+                    status: "moved",
+                    direction: "down"
+                };
+            };
+
+            /**
+             * @method elevator.goTo
+             * @param {integer} floorNum The floor to send the elevator
+             * @param {string} [direction] If set, force the direction of the request. If not, the direction will be automatically set based on the relationship between the requested floor and the elevator's current floor.
+             * @param {boolean} [forceStop] If true, the elevator will go to that floor directly, and then go to any other queued floors.
+             * @return {object}
+             *
+             * ```
+             * {
+             *     success,
+             *     status,
+             *     direction
+             * }
+             * ```
+             *
+             * - **boolean** *success* Whether the call to the floor was successful
+             * - **string** *status* If not successful, the reason why not
+             * - **string** *direction* What direction the elevator was requested, in this case always `"up"`
+             */
+            elevator.goTo = function (floorNum, direction, forceStop) {
+                if (arguments.length < 3) {
+                    forceStop = false;
+                }
+
+                // If direction not specified
+                if (arguments.length == 1) {
+                    direction = (floorNum < elevator.currentFloor()) ? "down" : "up";
+                }
+
+                if (direction === "up") {
+                    return elevator.goUp(floorNum, forceStop);
+                } else {
+                    return elevator.goDown(floorNum, forceStop);
+                }
+            };
+
+            /**
+             * Queue the elevator to go to specified floor number.
+             *
+             * @method elevator.goToFloor
+             * @param {integer} floorNum The floor to send the elevator
+             * @param {boolean} [force] If true, the elevator will go to that floor directly, and then go to any other queued floors.
+             */
+
+            /**
+             * @method elevator.goUp
+             * @param {integer} floorNum The floor to send the elevator
+             * @param {boolean} [forceStop] If true, the elevator will go to that floor directly, and then go to any other queued floors.
+             * @return {object}
+             *
+             * ```
+             * {
+             *     success,
+             *     status,
+             *     direction
+             * }
+             * ```
+             *
+             * - **boolean** *success* Whether the call to the floor was successful
+             * - **string** *status* If not successful, the reason why not
+             * - **string** *direction* What direction the elevator was requested, in this case always `"up"`
+             */
+            elevator.goUp = function (floorNum, forceStop) {
+                if ((floorNum === elevator.currentFloor()) && (elevator.destinationQueue.indexOf(floorNum) > -1)) {
+                    return {
+                        success: false,
+                        status: "same floor",
+                        direction: "up"
+                    };
+                }
+
+                if ((floorNum < settings.BOTTOM_FLOOR) || (floorNum > settings.TOP_FLOOR)) {
+                    return {
+                        success: false,
+                        status: "invalid floor: " + floorNum,
+                        direction: "up"
+                    };
+                }
+
+                if (arguments.length === 0) {
+                    return {
+                        success: false,
+                        status: "no floorNum",
+                        direction: "up"
+                    };
+                }
+
+                if ((elevator.destinationQueue.length > 0) && (floorNum < elevator.destinationQueue[0])) {
+                    return {
+                        success: false,
+                        status: "backtrack",
+                        direction: "up"
+                    };
+                }
+
+                if ((elevator.direction === "down") && (floorNum >= elevator.goingTo)) {
+                    return {
+                        success: false,
+                        status: "going past",
+                        direction: "up"
+                    };
+                }
+
+                // Set Elevator Status
+                elevator.direction("up");
+                elevator.goingTo = (floorNum > elevator.goingTo) ? floorNum : elevator.goingTo;
+
+                // Move the Elevator
+                if (arguments.length === 1) {
+                    // Add the floor and sort it to make sure we stop in order
+                    elevator.goToFloor(floorNum);
+                    elevator.destinationQueue.sort();
+                    elevator.checkDestinationQueue();
+                } else if (forceStop) {
+                    elevator.goToFloor(floorNum, forceStop);
+                }
+
+                return {
+                    success: true,
+                    status: "moved",
+                    direction: "up"
+                };
+            };
 
 			/**
 			 * Gets the load factor of the elevator.
@@ -449,6 +712,26 @@
 			 * @method elevator.loadFactor
 			 * @return {number} `0` means empty, `1` means full. Varies with passenger weights, which vary - not an exact measure.
 			 */
+
+            /**
+             * @method elevator.refreshQueue
+             */
+            elevator.refreshQueue = function () {
+                var oldQueue = elevator.destinationQueue,
+                    oldDestination = elevator.goingTo,
+                    elevatorButtons = elevator.getPressedFloors(),
+                    newQueue = new UniqueArray(elevator.direction);
+
+                elevator.destinationQueue = [];
+                newQueue.add(elevatorButtons);
+
+                // If the elevator 
+                if (floors[elevator.goingTo].buttonPressed()) {
+                    newQueue.add(elevator.goingTo);
+                } else {
+
+                }
+            };
 
 			/**
 			 * Generates a short string description of the elevator and current floor to be used in debugging
@@ -490,210 +773,6 @@
 			 *
 			 * @method elevator.stop
 			 */
-
-			elevator.debugStatus = function () {
-				return {
-					index: elevator_index,
-					goingTo: elevator.goingTo,
-					direction: elevator.direction(),
-					queue: elevator.destinationQueue,
-					buttons: elevator.getPressedFloors()
-				};
-			}
-
-			elevator.available = function (floorNum, direction) {
-				/* Returns a weighted availability
-				 *    2 : elevator already on its way
-				 *    1 : idle, feel free
-				 *    0 : busy, but might be going past
-				 *   -1 : going the other way past this floor, not available
-				 */
-
-				// If the elevator is heading to this floor, it's the best candidate
-				if (elevator.goingTo === floorNum) {
-					return 2;
-				}
-
-				// If the elevator is idle, it is available for use
-				if ((elevator.destinationQueue.length === 0) && (elevator.getPressedFloors().length === 0)) {
-					return 1;
-				}
-
-				// If the elevator is going past in the other direction, it's not available right now
-				if ((elevator.direction === "up" && direction === "down" && elevator.goingTo > floorNum) ||
-					(elevator.direction === "down" && direction === "up" && elevator.goingTo < floorNum)) {
-
-					return -1;
-				}
-
-				// If the elevator is already full, don't take another assignment
-				if (elevator.loadFactor() >= settings.FULL) {
-					return -1;
-				}
-
-				return 0;
-			};
-
-			elevator.refreshQueue = function () {
-				var oldQueue = elevator.destinationQueue,
-					oldDestination = elevator.goingTo,
-					elevatorButtons = elevator.getPressedFloors(),
-					newQueue = new UniqueArray(elevator.direction);
-
-				elevator.destinationQueue = [];
-				newQueue.add(elevatorButtons);
-
-				// If the elevator 
-				if (floors[elevator.goingTo].buttonPressed()) {
-					newQueue.add(elevator.goingTo);
-				} else {
-
-				}
-			};
-
-			elevator.goTo = function (floorNum, direction, forceStop) {
-				if (arguments.length < 3) {
-					forceStop = false;
-				}
-
-				// If direction not specified
-				if (arguments.length == 1) {
-					direction = (floorNum < elevator.currentFloor()) ? "down" : "up";
-				}
-
-				if (direction === "up") {
-					return elevator.goUp(floorNum, forceStop);
-				} else {
-					return elevator.goDown(floorNum, forceStop);
-				}
-			};
-
-			elevator.goUp = function (floorNum, forceStop) {
-				if ((floorNum === elevator.currentFloor()) && (elevator.destinationQueue.indexOf(floorNum) > -1)) {
-					return {
-						success: false,
-						status: "same floor",
-						direction: "up"
-					};
-				}
-
-				if ((floorNum < settings.BOTTOM_FLOOR) || (floorNum > settings.TOP_FLOOR)) {
-					return {
-						success: false,
-						status: "invalid floor: " + floorNum,
-						direction: "up"
-					};
-				}
-
-				if (arguments.length === 0) {
-					return {
-						success: false,
-						status: "no floorNum",
-						direction: "up"
-					};
-				}
-
-				if ((elevator.destinationQueue.length > 0) && (floorNum < elevator.destinationQueue[0])) {
-					return {
-						success: false,
-						status: "backtrack",
-						direction: "up"
-					};
-				}
-
-				if ((elevator.direction === "down") && (floorNum >= elevator.goingTo)) {
-					return {
-						success: false,
-						status: "going past",
-						direction: "up"
-					};
-				}
-
-				// Set Elevator Status
-				elevator.direction("up");
-				elevator.goingTo = (floorNum > elevator.goingTo) ? floorNum : elevator.goingTo;
-
-				// Move the Elevator
-				if (arguments.length === 1) {
-					// Add the floor and sort it to make sure we stop in order
-					elevator.goToFloor(floorNum);
-					elevator.destinationQueue.sort();
-					elevator.checkDestinationQueue();
-				} else if (forceStop) {
-					elevator.goToFloor(floorNum, forceStop);
-				}
-
-				return {
-					success: true,
-					status: "moved",
-					direction: "up"
-				};
-			};
-
-			elevator.goDown = function (floorNum, forceStop) {
-				if ((floorNum === elevator.currentFloor()) && (elevator.destinationQueue.indexOf(floorNum) > -1)) {
-					return {
-						success: false,
-						status: "same floor",
-						direction: "down"
-					};
-				}
-
-				if ((floorNum < settings.BOTTOM_FLOOR) || (floorNum > settings.TOP_FLOOR)) {
-					return {
-						success: false,
-						status: "invalid floor: " + floorNum,
-						direction: "down"
-					};
-				}
-
-				if (arguments.length === 0) {
-					return {
-						success: false,
-						status: "no floorNum",
-						direction: "down"
-					};
-				}
-
-				if ((elevator.destinationQueue.length > 0) && (floorNum > elevator.destinationQueue[0])) {
-					return {
-						success: false,
-						status: "backtrack",
-						direction: "down"
-					};
-				}
-
-				if ((elevator.direction === "up") && (floorNum <= elevator.goingTo)) {
-					return {
-						success: false,
-						status: "going past",
-						direction: "down"
-					};
-				}
-
-				// Set Elevator Status
-				elevator.direction("down");
-				elevator.goingTo = (elevator.goingTo === -1 || floorNum < elevator.goingTo) ? floorNum : elevator.goingTo;
-
-				// Move the Elevator
-				if (floorNum) {
-					if (arguments.length === 1) {
-						// Add the floor and sort so we stop in order
-						elevator.goToFloor(floorNum);
-						elevator.destinationQueue.sort();
-						elevator.destinationQueue.reverse();
-						elevator.checkDestinationQueue();
-					} else {
-						elevator.goToFloor(floorNum, forceStop);
-					}
-				}
-
-				return {
-					success: true,
-					status: "moved",
-					direction: "down"
-				};
-			};
 
 			// Elevator Events -------------------------------------------------
 			elevator.on("idle", function () {
