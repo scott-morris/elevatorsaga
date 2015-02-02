@@ -30,13 +30,17 @@ Helper class for maintaining an array with unique values that is automatically s
 
 * **String** *[direction]* if direction is `false` or `"down"`, the array will be reverse sorted
 
-## UniqueArray.get()
+## UniqueArray.add(v)
 
-Get the array
+Add a value to the array if it is not already present
+
+### Params:
+
+* **variant** *v* value
 
 ### Return:
 
-* **Array** the stored array
+* **array** the stored array
 
 ## UniqueArray.find(v)
 
@@ -50,6 +54,14 @@ Find a given value in the array
 
 * **integer** index of passed-in value, or `-1` if not found
 
+## UniqueArray.get()
+
+Get the array
+
+### Return:
+
+* **Array** the stored array
+
 ## UniqueArray.has(v)
 
 Find out if a given value is present in the array
@@ -62,17 +74,13 @@ Find out if a given value is present in the array
 
 * **boolean** whether the value is present in the array
 
-## UniqueArray.add(v)
+## UniqueArray.last()
 
-Add a value to the array if it is not already present
-
-### Params:
-
-* **variant** *v* value
+Get the last item in the array
 
 ### Return:
 
-* **array** the stored array
+* **variant** The last item in the array
 
 ## UniqueArray.remove(v)
 
@@ -125,6 +133,50 @@ todo
 - **integer** *bestAvailability* todo
 - **integer** *elevatorCalled* todo
 
+## closerFloor(startFloor, option1, option2)
+
+Returns the closer of the two options to the `startFloor`
+
+### Params:
+
+* **integer** *startFloor* current floor
+* **integer** *option1* the first floor to compare
+* **integer** *option2* the second floor to compare
+
+### Return:
+
+* **integer** the closer floor number
+
+## debugStatus(message, obj)
+
+Given the elevator or floor, show the debug message with relevant context based on the object's `statusText()` function
+
+### Params:
+
+* **string** *message* Debug message to be shown in the console
+* **object** *obj* Either an `elevator` or `floor`
+
+### Return:
+
+* **object** 
+```
+{
+    floors,
+    elevators
+}
+```
+
+- **object[]** *floors* todo
+- **object[]** *elevators* todo
+
+## elevatorStatus()
+
+todo
+
+### Return:
+
+* **array** Array of `debugStatus()` for all elevators
+
 ## floorsWaiting()
 
 todo
@@ -150,49 +202,19 @@ todo
 - **integer** *topDown* todo
 - **boolean** *noneWaiting* todo
 
-## elevatorStatus()
+## isFarther(direction, floor1, floor2)
 
-todo
-
-### Return:
-
-* **array** Array of `debugStatus()` for all elevators
-
-## debugStatus(message, obj)
-
-Given the elevator or floor, show the debug message with relevant context based on the object's `statusText()` function
+Determine whether one floor is farther than another, based on the direction
 
 ### Params:
 
-* **string** *message* Debug message to be shown in the console
-* **object** *obj* Either an `elevator` or `floor`
+* **string** *direction* 
+* **integer** *floor1* 
+* **integer** *floor2* 
 
 ### Return:
 
-* **object** 
-```
-{
-    floors,
-    elevators
-}
-```
-
-- **object[]** *floors* todo
-- **object[]** *elevators* todo
-
-## closerFloor(startFloor, option1, option2)
-
-Returns the closer of the two options to the `startFloor`
-
-### Params:
-
-* **integer** *startFloor* current floor
-* **integer** *option1* the first floor to compare
-* **integer** *option2* the second floor to compare
-
-### Return:
-
-* **integer** the closer floor number
+* **boolean** Whether `floor2` is farther than `floor1` in the `direction` direction
 
 ## elevator 
 Each elevator operates independently, without a master queue.

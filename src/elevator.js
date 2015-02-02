@@ -50,35 +50,6 @@
 
             return {
                 /**
-                 * Get the array
-                 *
-                 * @name UniqueArray.get
-                 * @returns {Array} the stored array
-                 */
-                get: function () {
-                    return _a;
-                },
-                /**
-                 * Find a given value in the array
-                 *
-                 * @name UniqueArray.find
-                 * @param {variant} v value
-                 * @returns {integer} index of passed-in value, or `-1` if not found
-                 */
-                find: function (v) {
-                    return _a.indexOf(v);
-                },
-                /**
-                 * Find out if a given value is present in the array
-                 *
-                 * @name UniqueArray.has
-                 * @param {variant} v value
-                 * @returns {boolean} whether the value is present in the array
-                 */
-                has: function (v) {
-                    return (this.find(v) > -1);
-                },
-                /**
                  * Add a value to the array if it is not already present
                  *
                  * @name UniqueArray.add
@@ -98,6 +69,44 @@
 
                     return _a;
                 },
+                /**
+                 * Find a given value in the array
+                 *
+                 * @name UniqueArray.find
+                 * @param {variant} v value
+                 * @returns {integer} index of passed-in value, or `-1` if not found
+                 */
+                find: function (v) {
+                    return _a.indexOf(v);
+                },
+                /**
+                 * Get the array
+                 *
+                 * @name UniqueArray.get
+                 * @returns {Array} the stored array
+                 */
+                get: function () {
+                    return _a;
+                },
+                /**
+                 * Find out if a given value is present in the array
+                 *
+                 * @name UniqueArray.has
+                 * @param {variant} v value
+                 * @returns {boolean} whether the value is present in the array
+                 */
+                has: function (v) {
+                    return (this.find(v) > -1);
+                },
+                /**
+                 * Get the last item in the array
+                 *
+                 * @name UniqueArray.last
+                 * @returns {variant} The last item in the array
+                 */
+                last: function () {
+                    return (_a[_a.length - 1]);
+                };
                 /**
                  * Remove a value from the array if it exists
                  *
@@ -199,75 +208,16 @@
         };
 
         /**
-         * todo
+         * Returns the closer of the two options to the `startFloor`
          *
-         * @name floorsWaiting
-         * @return {object}
-         *
-         * ```
-         * {
-         *     queue: {
-         *         up,
-         *         down
-         *     }
-         *     bottomUp,
-         *     topDown,
-         *     noneWaiting
-         * }
-         * ```
-         *
-         * - **integer[]** *queue.up* todo
-         * - **integer[]** *queue.down* todo
-         * - **integer** *bottomUp* todo
-         * - **integer** *topDown* todo
-         * - **boolean** *noneWaiting* todo
+         * @name closerFloor
+         * @param {integer} startFloor current floor
+         * @param {integer} option1 the first floor to compare
+         * @param {integer} option2 the second floor to compare
+         * @return {integer} the closer floor number
          */
-        var floorsWaiting = function () {
-            var queue = {
-                    up: [],
-                    down: []
-                },
-                bottomUp = -1,
-                topDown = -1,
-                noneWaiting = true;
-
-            // Check All Floors
-            floors.forEach(function (floor, fidx) {
-                if (floor.upPressed()) {
-                    queue.up.push(fidx);
-                    noneWaiting = false;
-                    bottomUp = (bottomUp === -1) ? fidx : bottomUp;
-                }
-
-                if (floor.downPressed()) {
-                    queue.down.push(fidx);
-                    noneWaiting = false;
-                    topDown = fidx;
-                }
-            });
-
-            return {
-                queue: queue,
-                bottomUp: bottomUp,
-                topDown: topDown,
-                noneWaiting: noneWaiting
-            };
-        };
-
-        /**
-         * todo
-         *
-         * @name elevatorStatus
-         * @return {array} Array of `debugStatus()` for all elevators
-         */
-        var elevatorsStatus = function () {
-            var _elevators = [];
-
-            elevators.forEach(function (e, i) {
-                _elevators.push(e.debugStatus());
-            });
-
-            return _elevators;
+        var closerFloor = function (startFloor, option1, option2) {
+            return (Math.abs(startFloor - option1) < Math.abs(startFloor - option2)) ? option1 : option2;
         };
 
         /**
@@ -338,16 +288,88 @@
         };
 
         /**
-         * Returns the closer of the two options to the `startFloor`
+         * todo
          *
-         * @name closerFloor
-         * @param {integer} startFloor current floor
-         * @param {integer} option1 the first floor to compare
-         * @param {integer} option2 the second floor to compare
-         * @return {integer} the closer floor number
+         * @name elevatorStatus
+         * @return {array} Array of `debugStatus()` for all elevators
          */
-        var closerFloor = function (startFloor, option1, option2) {
-            return (Math.abs(startFloor - option1) < Math.abs(startFloor - option2)) ? option1 : option2;
+        var elevatorsStatus = function () {
+            var _elevators = [];
+
+            elevators.forEach(function (e, i) {
+                _elevators.push(e.debugStatus());
+            });
+
+            return _elevators;
+        };
+
+        /**
+         * todo
+         *
+         * @name floorsWaiting
+         * @return {object}
+         *
+         * ```
+         * {
+         *     queue: {
+         *         up,
+         *         down
+         *     }
+         *     bottomUp,
+         *     topDown,
+         *     noneWaiting
+         * }
+         * ```
+         *
+         * - **integer[]** *queue.up* todo
+         * - **integer[]** *queue.down* todo
+         * - **integer** *bottomUp* todo
+         * - **integer** *topDown* todo
+         * - **boolean** *noneWaiting* todo
+         */
+        var floorsWaiting = function () {
+            var queue = {
+                    up: [],
+                    down: []
+                },
+                bottomUp = -1,
+                topDown = -1,
+                noneWaiting = true;
+
+            // Check All Floors
+            floors.forEach(function (floor, fidx) {
+                if (floor.upPressed()) {
+                    queue.up.push(fidx);
+                    noneWaiting = false;
+                    bottomUp = (bottomUp === -1) ? fidx : bottomUp;
+                }
+
+                if (floor.downPressed()) {
+                    queue.down.push(fidx);
+                    noneWaiting = false;
+                    topDown = fidx;
+                }
+            });
+
+            return {
+                queue: queue,
+                bottomUp: bottomUp,
+                topDown: topDown,
+                noneWaiting: noneWaiting
+            };
+        };
+
+        /**
+         * Determine whether one floor is farther than another, based on the direction
+         *
+         * @name isFarther
+         * @param {string} direction
+         * @param {integer} floor1
+         * @param {integer} floor2
+         * @return {boolean} Whether `floor2` is farther than `floor1` in the `direction` direction
+         */
+        var isFarther = function (direction, floor1, floor2) {
+            return (direction == "up") ? (floor2 > floor1) : (floor1 > floor2);
         };
 
         // Elevator Code =======================================================
@@ -722,10 +744,23 @@
                     elevatorButtons = elevator.getPressedFloors(),
                     newQueue = new UniqueArray(elevator.direction);
 
-                elevator.destinationQueue = [];
-                newQueue.add(elevatorButtons);
+                // One set of rules if the destination queue is empty
+                if (elevator.destinationQueue.length === 0) {
+                    if (elevatorButtons.length > 0) {
+                        elevator.destinationQueue = [];
+                        newQueue.add(elevatorButtons);
+                    } else { // The elevator should be idle, reroute
+                        elevator.stop();
+                    }
+                } else {
+                    // Determine which way the elevator is travelling
+                    var currentFloor = elevator.currentFloor(),
+                        nextFloor = elevator.destinationQueue[0],
+                        moving = (currentFloor < nextFloor) ? "up" : "down";
 
-                // If the elevator 
+                }
+
+                // If the elevator ...
                 if (floors[elevator.goingTo].buttonPressed()) {
                     newQueue.add(elevator.goingTo);
                 } else {
