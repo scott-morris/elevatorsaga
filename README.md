@@ -13,6 +13,14 @@ Each time I refactored the code, I tried to start with a common base
     init: function(elevators, floors) {
         // "Constants" =========================================================
         var settings = {
+            ELEVATORS: {
+                COUNT: elevators.length - 1,
+                FULL: 0.7
+            },
+            FLOORS: {
+                BOTTOM: 0,
+                TOP: floors.length - 1
+            },
             FULL: 4,
             BOTTOM_FLOOR: 0,
             TOP_FLOOR: floors.length - 1,
@@ -21,7 +29,7 @@ Each time I refactored the code, I tried to start with a common base
 
         // Elevator Code =======================================================
         elevators.forEach(function(elevator, elevator_index) {
-            /** Elevator Properties ********************************************
+            /** Elevator Methods ***********************************************
              *  - goToFloor(floorNum, [force])
              *  - stop()
              *  - currentFloor()
@@ -30,8 +38,6 @@ Each time I refactored the code, I tried to start with a common base
              *  - loadFactor()
              *  - destinationQueue
              *  - checkDestinationQueue()
-             *
-             * UNDOCUMENTED FUNCTIONS
              *  - getPressedFloors()
              ******************************************************************/
 
@@ -54,7 +60,7 @@ Each time I refactored the code, I tried to start with a common base
         
         // Floor Code ==========================================================
         floors.forEach(function(floor, floor_index) {
-            /** Elevator Properties ********************************************
+            /** Elevator Methods ***********************************************
              *  - floorNum()
              *
              * UNDOCUMENTED PROPERTIES
